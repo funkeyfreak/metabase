@@ -3987,3 +3987,66 @@ databaseChangeLog:
             columnName: database_type
             columnDataType: varchar(255)
             defaultNullValue: '?'
+# Changeset 71 follows the directive of changeSet#1 table report_card
+  - changeSet:
+      id: '71'
+      author: dalinwilliams
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  autoIncrement: true
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: id
+                  type: int
+              - column:
+                  constraints:
+                    nullable: false
+                    references: core_user(id)
+                    foreignKeyName: fk_scalar_ref_creator_id
+                    deferrable: false
+                    initiallyDeferred: false
+                  name: created_by
+                  type: int
+              - column:
+                  constraints:
+                    nullable: false
+                  name: name
+                  type: varchar(254)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: value
+                  type: int
+              - column:
+                  name: description
+                  type: text
+              - column:
+                  defaultValueBoolean: true
+                  constraints:
+                    nullable: false
+                  name: is_active
+                  type: boolean
+              - column:
+                  constraints:
+                    nullable: false
+                  name: definition
+                  type: text
+              - column:
+                  constraints:
+                    nullable: false
+                  name: date
+                  type: DATETIME
+              - column:
+                  constraints:
+                    nullable: false
+                  name: created_at
+                  type: DATETIME
+              - column:
+                  constraints:
+                    nullable: false
+                  name: updated_at
+                  type: DATETIME
+              tableName: scalar
