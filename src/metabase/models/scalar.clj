@@ -1,8 +1,6 @@
 (ns metabase.models.scalar
     "Underlying DB model for the scalar value this scalar can be composited of several source types, ranging from an manually entered value, to calculated from a query."
-    (:require [clojure.core.memoize :as memoize]
-      [clojure.set :as set]
-      [clojure.tools.logging :as log]
+    (:require
       [clj-time
        [core :as t]
        [format :as tf]]
@@ -16,17 +14,12 @@
        [query :as q]
        [query-processor :as qp]
        [util :as u]]
-      [metabase.query-processor.middleware.permissions :as qp-perms]
-      [metabase.query-processor.util :as qputil]
       [toucan
        [db :as db]
        [hydrate :refer [hydrate]]
        [models :as models]] [metabase.events :as events]))
 
 (models/defmodel Scalar :scalar)
-
-
-;;; -------------------------------------------------- Hydration and Database Management --------------------------------------------------
 
 
 ;;; ---------------------------------------------- Permissions Checking ----------------------------------------------
@@ -45,7 +38,9 @@
                          :properties (constantly {:timestamped? true})})
                  i/IObjectPermissions
                  (merge i/IObjectPermissionsDefaults
-                        {:perms-objects-set perms-objects-set
+                        {
+                         ;;Don't think I need the perms set
+                         ;;:perms-objects-set perms-objects-set
                          :can-read?         (partial i/current-user-has-full-permissions? :read)
                          :can-write?        (partial i/current-user-has-full-permissions? :write)}))
 
@@ -75,7 +70,7 @@
 
 
 (defn- serialize-scalar
-      "Serialize a `Scalar` for use in a `Revision`."
+       "Serialize a `Scalar` for use in a `Revision`."
        [_ _ instance]
        (dissoc instance :created_at :updated_at))
 
@@ -113,9 +108,9 @@
 
 ;;; TODO test all publish events for Scalar model
 (defn create
-      "Create a new `Scalar.`
+      "Create a new `Scalar`.
        Returns the newly created `Scalar` or throws an Exception."
-      [scalar-name scalar-value description creator-id definition]
+      [scalar-name scalar-value description creator-id date definition]
       {:pre [(string? scalar-name)
              (integer? creator-id)
              (map? definition)]}
@@ -125,13 +120,14 @@
                      :value       scalar-value
                      :description description
                      :is_active   true
+                     :date        date
                      :definition  definition)]
            (-> (events/publish-event! :scalar_create scalar)
                (hydrate :creator))))
 
 (defn exists?
-      "Does an *active* `Scalar` with a given ID exist?"
-      ^Boolean [id]
+        "Does an *active* `Scalar` with a given ID exist?"
+        ^Boolean [id]
       {:pre [(integer? id)]}
       (db/exists? Scalar :id id, :is_active true))
 
@@ -141,12 +137,6 @@
       {:pre [(integer? id)]}
       (-> (Scalar id)
           (hydrate :creator)))
-
-(defn fetch-scalar-by-name
-  "Fetch a single `Scalar` by its ID value. Hydrates its `:creator`."
-  [name]
-  (-> (Scalar name)
-      (hydrate :creator)))
 
 (defn fetch-scalars
       "Fetch all `Scalars` for a given `Name`. Optional second and third arguments allows for the specification of a date-time range in which to bind this scalar. Will always select only active `Scalars`"
@@ -159,7 +149,7 @@
                       ;; if our date-in and date-out are both set,
                      (if (and (some? date-in) (some? date-out))
                        ;; make sure our query limits to between the dates!
-                       [:= true (date-between date-in date-out :updated-at)]
+                       [:= true (date-between date-in date-out :date)]
                        ;; otherwise, tie to true
                        true)]
               :order-by [[:name :asc]]})
@@ -176,7 +166,7 @@
              (string? revision_message)
              (string? user-id)]}
       (db/update! Scalar id
-        (select-keys body #{:definition :scalar-value :description :how_is_this_calculated :name}))
+        (select-keys body #{:definition :scalar-value :description :name}))
       (u/prog1 (fetch-scalar id) (events/publish-event! :scalar_update (assoc <> :actor_id user-id, :revision_message revision_message))))
 
 (defn delete!
