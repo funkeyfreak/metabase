@@ -3987,18 +3987,20 @@ databaseChangeLog:
             columnName: database_type
             columnDataType: varchar(255)
             defaultNullValue: '?'
-# Changeset 71 follows the directive of changeSet#1 table report_card
   - changeSet:
-      id: '71'
+      id: 71
       author: dalinwilliams
+      comment: "Added the scalar table"
+      #Creating the table that contains all scalar data
       changes:
         - createTable:
+            tableName: scalar
             columns:
               - column:
-                  autoIncrement: true
                   constraints:
                     nullable: false
                     primaryKey: true
+                  autoIncrement: true
                   name: id
                   type: int
               - column:
@@ -4049,4 +4051,14 @@ databaseChangeLog:
                     nullable: false
                   name: updated_at
                   type: DATETIME
-              tableName: scalar
+        - createIndex:
+            tableName: scalar
+            indexName: idx_scalar_name_name_id
+            columns:
+              column:
+                name: name
+        - modifySql:
+            dbms: postgresql
+            replace:
+              replace: WITHOUT
+              with: WITH
