@@ -8,6 +8,7 @@
             [clojure.tools.logging :as log]
             environ.core
             [medley.core :as m]
+            [metabase.api.common.internal :as mbi]
             [metabase
              [config :as config]
              [db :as mdb]
@@ -270,14 +271,23 @@
   ((resolve 'metabase.cmd.scalar_interface/print-scalar-set)
     scalar-key))
 
+(defn ^:command get-scalar-by-id
+  "usage: [get-scalar-by-id [(int) scalar-id]]"
+  [scalar-id]
+  {:pre [(Integer/parseInt scalar-id)]}
+  (println "The parsed int " (Integer/parseInt scalar-id))
+  (require 'metabase.cmd.scalar_interface)
+  ((resolve 'metabase.cmd.scalar_interface/get-scalar-by-id)
+    (Integer/parseInt scalar-id)))
+
 (defn ^:command set-scalar!
   "usage: [set-scalar! [(string) scalar-key (float) scalar-value]]
    Run to create a new scalar"
   [scalar-key scalar-value]
-  {:pre [(float? scalar-value)]}
+  {:pre [(float? (Float/parseFloat scalar-value))]}
   (require 'metabase.cmd.scalar_interface)
   ((resolve 'metabase.cmd.scalar_interface/set-scalar!)
-    scalar-key scalar-value))
+    scalar-key (Float/parseFloat scalar-value)))
 
 (defn ^:command load-from-h2
   "Transfer data from existing H2 database to the newly created MySQL or Postgres DB specified by env vars."
