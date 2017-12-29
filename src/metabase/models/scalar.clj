@@ -107,7 +107,7 @@
            (= query-type :native)))
 
 ;;; TODO test all publish events for Scalar model
-(defn create
+(defn create!
       "Create a new `Scalar`.
        Returns the newly created `Scalar` or throws an Exception."
       [scalar-name scalar-value description creator-id date definition]
@@ -115,18 +115,19 @@
              (integer? creator-id)
              (map? definition)]}
       (let [scalar (db/insert! Scalar
-                     :creator_id  creator-id
-                     :name        name
+                     :created_by  creator-id
+                     :name        scalar-name
                      :value       scalar-value
-                     :description description
                      :is_active   true
-                     :date        date
-                     :definition  definition)]
+                     :description description
+                     :definition  definition
+                     :date        date)]
+           (println "The new scalar: " scalar)
            (-> (events/publish-event! :scalar_create scalar)
                (hydrate :creator))))
 
 (defn exists?
-        "Does an *active* `Scalar` with a given ID exist?"
+        "Does an *active* `Scalar` with a givefn ID exist?"
         ^Boolean [id]
       {:pre [(integer? id)]}
       (db/exists? Scalar :id id, :is_active true))
