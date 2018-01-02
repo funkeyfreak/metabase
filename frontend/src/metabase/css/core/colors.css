@@ -1,7 +1,7 @@
 :root {
-  --brand-color: #509EE3;
-  --brand-light-color: #CDE3F8;
-  --brand-saturated-color: #2D86D4;
+  --brand-color: #E20074; /*#509EE3;*/
+  --brand-light-color: #E8E8E8;/*#CDE3F8;*/
+  --brand-saturated-color: #9B9B9B;/*#2D86D4;*/
 
   --base-grey: #f8f8f8;
   --grey-1: color(var(--base-grey) shade(10%));

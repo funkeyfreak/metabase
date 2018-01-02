@@ -1,5 +1,5 @@
 :root {
-    --selection-color: #ccdff6;
+    --selection-color: #E8E8E8;/*#ccdff6;*/
 }
 
 #react_qb_viz {
@@ -501,7 +501,7 @@
 
 .ChartType--selected {
     color: white;
-    background-color: rgb(74, 144, 226);
+    background-color: rgb(226, 0, 116); /*rgb(74, 144, 226);*/
 }
 
 .ChartType--notSensible {
@@ -669,8 +669,8 @@
   white-space: pre-wrap;
   white-space: -moz-pre-wrap;
   white-space: -o-pre-wrap;
-  background-color: #F9FBFC;
-  border: 1px solid #D5DBE3;
+  background-color: #E8E8E8; /*#F9FBFC;*/
+  border: 1px solid #9B9B9B; /*#D5DBE3;*/
   border-radius: 4px;
 }
 

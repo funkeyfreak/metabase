@@ -59,15 +59,15 @@
 }
 
 .Select--blue select {
-    color: rgb(78,146,223);
-    border-color: rgb(195,216,241);
-    background-color: rgb(227,238,249);
+    color: rgb(226, 0, 116); /*rgb(78,146,223);*/
+    border-color: rgb(232, 232, 232); /*rgb(195,216,241);*/
+    background-color: rgb(155, 155, 155);/*rgb(227,238,249);*/
 }
 .Select--blue:after {
-    border-top: .3rem solid rgb(78,146,223);
+    border-top: .3rem solid rgb(226, 0, 116);/*rgb(78,146,223);*/
 }
 .Select--blue:before {
-    border-bottom: .3rem solid rgb(78,146,223);
+    border-bottom: .3rem solid rgb(226, 0, 116);/*rgb(78,146,223);*/
 }
 
 .Select--purple select {

@@ -1,5 +1,5 @@
 :root {
-  --default-link-color: #4A90E2;
+  --default-link-color: ##E20074;/*#4A90E2;*/
 }
 
 .no-decoration, :local(.no-decoration) {

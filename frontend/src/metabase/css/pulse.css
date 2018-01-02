@@ -15,7 +15,7 @@
   color: rgb(121,130,127);
   font-weight: 700;
   border-width: 2px;
-  border-color: rgb(222,228,226);
+  border-color: rgb(232, 232, 232); /*rgb(222,228,226);*/
 }
 
 .PulseEdit .input,
@@ -24,7 +24,7 @@
 .PulseEdit .border-row-divider,
 .PulseEdit .AdminSelect {
   border-width: 2px;
-  border-color: rgb(222,228,226);
+  border-color: rgb(232, 232, 232); /*rgb(222,228,226);*/
 }
 
 
@@ -35,7 +35,7 @@
 .PulseEdit .input:focus,
 .PulseEdit .input--focus {
   border-width: 2px;
-  border-color: rgb(97,167,229) !important;
+  border-color: rgb(226, 0, 116) /*rgb(97,167,229)*/ !important;
 }
 
 .PulseListItem button {
@@ -43,7 +43,7 @@
 }
 
 .bg-grey-0 {
-  background-color: rgb(252,252,253);
+  background-color: rgb(232, 232, 232); /*rgb(252,252,253);*/
 }
 
 .PulseEditButton {
@@ -60,8 +60,8 @@
 }
 
 .PulseListItem.PulseListItem--focused {
-  border-color: #509EE3;
-  box-shadow: 0 0 3px #509EE3;
+  border-color: #e20074;/*#509EE3;*/
+  box-shadow: 0 0 3px #e20074; /*#509EE3;*/
 }
 
 .DangerZone:hover {
@@ -71,7 +71,7 @@
 
 .DangerZone .Button--danger {
     opacity: 0.4;
-    background: #FBFCFD;
+    background: #e8e8e8;/*#FBFCFD;*/
     border: 1px solid #ddd;
     color: #444;
 }

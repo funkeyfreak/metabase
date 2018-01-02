@@ -32,7 +32,7 @@
 
 .SetupStep.SetupStep--todo {
     color: var(--brand-color);
-    background-color: #EDF2F8;
+    background-color: #E8E8E8;/*#EDF2F8;*/
     border-style: dashed;
 }
 

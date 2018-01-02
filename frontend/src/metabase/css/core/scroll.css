@@ -49,14 +49,14 @@
 /* scroll light */
 .scroll-show.scroll--light::-webkit-scrollbar-thumb {
     border-radius: 0;
-    background-color: #CFE4F5;
+    background-color: #E8E8E8; /*#CFE4F5;*/
 }
 
 .scroll-show.scroll--light::-webkit-scrollbar-thumb:horizontal:hover,
 .scroll-show.scroll--light::-webkit-scrollbar-thumb:vertical:hover,
 .scroll-show.scroll--light::-webkit-scrollbar-thumb:horizontal:active,
 .scroll-show.scroll--light::-webkit-scrollbar-thumb:vertical:active {
-    background-color: #C7D9E4;
+    background-color: #E8E8E8;/*#C7D9E4;*?
 }
 
 .scroll-hide {

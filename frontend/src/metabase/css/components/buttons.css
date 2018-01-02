@@ -3,8 +3,8 @@
   --default-button-border-color: #b9b9b9;
   --default-button-background-color: #fff;
 
-  --primary-button-border-color: #509EE3;
-  --primary-button-bg-color: #509EE3;
+  --primary-button-border-color: #E20074;/*#509EE3;*/
+  --primary-button-bg-color: #E20074;/*#509EE3;*/
   --warning-button-border-color: #EF8C8C;
   --warning-button-bg-color: #EF8C8C;
   --danger-button-bg-color: #EF8C8C;
@@ -156,16 +156,16 @@
 }
 
 .Button-group--blue {
-  border-color: rgb(194,216,242);
+  border-color: rgb(226, 0, 116) /*rgb(194,216,242);*/
 }
 
 .Button-group--blue .Button {
-  color: rgb(147,155,178);
+  color: rgb(155, 155, 155);/*rgb(147,155,178);*/
 }
 
 .Button-group--blue .Button--active {
-  background-color: rgb(227,238,250);
-  color: rgb(74,144,226);
+  background-color: rgb(232, 232, 232);/*rgb(227,238,250);*/
+  color: rgb(226, 0, 116);/*rgb(74,144,226);*/
 }
 
 .Button-group--brand {

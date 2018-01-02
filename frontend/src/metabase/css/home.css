@@ -26,11 +26,11 @@
 }
 
 .NavNewQuestion {
-    box-shadow: 0px 2px 2px 0px rgba(77, 136, 189, 0.69);
+    box-shadow: 0px 2px 2px 0px rgba(226, 0, 116, .69);/*rgba(77, 136, 189, 0.69);*/
 }
 .NavNewQuestion:hover {
-    box-shadow: 0px 3px 2px 2px rgba(77, 136, 189, 0.75);
-    color: #3875AC;
+    box-shadow: 0px 3px 2px 2px rgba(226, 0, 116, .75);/*rgba(77, 136, 189, 0.75);*/
+    color: #e20074;/*#3875AC;*/
 }
 
 .Greeting {
@@ -51,7 +51,7 @@
 }
 .bullet:before {
     content: "\2022";
-    color: #6FB0EB;
+    color: #9B9B9B;/*#6FB0EB;*/
     position: absolute;
     top: 0;
     margin-top: 16px;
@@ -121,7 +121,7 @@
 
 .NavDropdown.open .NavDropdown-button,
 .NavDropdown .NavDropdown-content-layer {
-    background-color: #6FB0EB;
+    background-color: #9B9B9B; /*#6FB0EB;*/
 }
 
 .NavDropdown .NavDropdown-content-layer {
@@ -190,7 +190,7 @@
 .Layout-sidebar {
   min-height: 100vh;
   width: 346px;
-  background-color: #F9FBFC;
+  background-color: #E8E8E8; /*#F9FBFC;*/
   border-left: 2px solid var(--border-color);
 }
 .Layout-mainColumn {
