@@ -35,7 +35,7 @@
 }
 
 .EditHeader {
-    background-color: #6CAFED;
+    background-color: #E8E8E8; /*#6CAFED;*/
 }
 
 .EditHeader.EditHeader--admin {

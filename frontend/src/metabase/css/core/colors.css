@@ -196,6 +196,6 @@
 .text-light-blue-hover:hover {
   color: #CFE4F5
 }
-.text-slate { color: #606E7B; }
+.text-slate { color: #9B9B9B; /*#606E7B;*/ }
 
 .bg-transparent { background-color: transparent }
