@@ -10,6 +10,7 @@
             [metabase.util :as u]
             [toucan
              [db :as db]
+             [hydrate :refer [hydrate]]
              [models :as models]]))
 
 ;;; ------------------------------------------------------------ Type Mappings ------------------------------------------------------------
@@ -167,7 +168,9 @@
                                                (:fk_target_field_id field))]
                                 (:fk_target_field_id field)))
         id->target-field (u/key-by :id (when (seq target-field-ids)
-                                         (filter i/can-read? (db/select Field :id [:in target-field-ids]))))]
+                                         (filter i/can-read? (-> Field
+                                                                 (db/select :id [:in target-field-ids])
+                                                                 (hydrate   :table)))))]
     (for [field fields
           :let  [target-id (:fk_target_field_id field)]]
       (assoc field :target (id->target-field target-id)))))

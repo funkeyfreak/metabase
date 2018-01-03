@@ -285,7 +285,7 @@
   [id]
   (api/read-check Database id)
   (sort-by (comp str/lower-case :name :table) (filter mi/can-read? (-> (database/pk-fields {:id id})
-                                                                         (hydrate :table)))))
+                                                                       (hydrate :table)))))
 
 
 ;;; ----------------------------------------------- POST /api/database -----------------------------------------------
