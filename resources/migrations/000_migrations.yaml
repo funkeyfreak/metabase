@@ -3989,6 +3989,81 @@ databaseChangeLog:
             defaultNullValue: '?'
   - changeSet:
       id: 71
+      author: dalinwilliams
+      comment: "Added the scalar table"
+      #Creating the table that contains all scalar data
+      changes:
+        - createTable:
+            tableName: scalar
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  autoIncrement: true
+                  name: id
+                  type: int
+              - column:
+                  constraints:
+                    nullable: false
+                    references: core_user(id)
+                    foreignKeyName: fk_scalar_ref_creator_id
+                    deferrable: false
+                    initiallyDeferred: false
+                  name: created_by
+                  type: int
+              - column:
+                  constraints:
+                    nullable: false
+                  name: name
+                  type: varchar(254)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: value
+                  type: int
+              - column:
+                  name: description
+                  type: text
+              - column:
+                  defaultValueBoolean: true
+                  constraints:
+                    nullable: false
+                  name: is_active
+                  type: boolean
+              - column:
+                  constraints:
+                    nullable: false
+                  name: definition
+                  type: text
+              - column:
+                  constraints:
+                    nullable: false
+                  name: date
+                  type: DATETIME
+              - column:
+                  constraints:
+                    nullable: false
+                  name: created_at
+                  type: DATETIME
+              - column:
+                  constraints:
+                    nullable: false
+                  name: updated_at
+                  type: DATETIME
+        - createIndex:
+            tableName: scalar
+            indexName: idx_scalar_name_name_id
+            columns:
+              column:
+                name: name
+        - modifySql:
+            dbms: postgresql
+            replace:
+              replace: WITHOUT
+              with: WITH
+  - changeSet:
+      id: 72
       author: camsaul
       comment: 'Added 0.28.0'
       changes:
