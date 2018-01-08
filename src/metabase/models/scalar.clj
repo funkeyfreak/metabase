@@ -172,7 +172,7 @@
 
 (defn delete!
       "Delete a `Scalar`.
-       Preforms a soft delete by marking this `Scalar` as non-active. It does not remove the physical record at all. returns the finial state of the `Scalar`."
+       Preforms a *soft* delete by marking this `Scalar` as non-active. It does not remove the physical record at all. returns the finial state of the `Scalar`."
       [id user-id revision-message]
       {:pre [(integer? id)
              (integer? user-id)
