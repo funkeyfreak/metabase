@@ -3991,7 +3991,7 @@ databaseChangeLog:
       id: 71
       author: dalinwilliams
       comment: "Added the scalar table"
-      #Creating the table that contains all scalar data
+        # Creating the table that contains all scalar data
       changes:
         - createTable:
             tableName: scalar
@@ -4073,3 +4073,16 @@ databaseChangeLog:
             tableName: report_dashboardcard
             columnName: card_id
             columnDataType: int
+  - changeSet:
+      id: 73
+      author: funkeyfreak
+      comment: 'Added UnifyPlatform 0.1.0'
+        # added revision_message to Scalar, will allow for a message to be added upon Scalar update
+      changes:
+        - addColumn:
+              tableName: scalar
+              remarks: 'Added a revision_message field'
+              columns:
+                - column:
+                    name: revision_message
+                    type: varchar(254)
