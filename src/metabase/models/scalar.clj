@@ -46,12 +46,15 @@
 
 ;;; -------------------------------------------------- Dependencies --------------------------------------------------
 
-
+;; TODO: funkeyfreak - Need to make Scalar a dependency by adding the following:
+;;    1. A query resolution function in ./src/metabase/query.clj (similar to extract-metric-ids
+;;    2. Add this resolution to m.models.card & m.models.metric under their dependencies
 (defn scalar-dependencies
       "Calculate any dependent objects for a given `Scalar` that is stored in the *definition* field."
       [this id {:keys [definition]}]
       (when definition
-            {:Segment (q/extract-segment-ids definition)}))
+            {:Segment (q/extract-segment-ids definition)
+             :Metric  (q/extract-metric-ids  definition)}))
 
 (u/strict-extend (class Scalar)
                  dependency/IDependent
@@ -75,29 +78,29 @@
        (dissoc instance :created_at :updated_at))
 
 (defn- diff-scalar
-       "Gets and returns a diff between two `Scalar` types into a third."
-       [this scalar1 scalar2]
-       (if-not scalar1
-               ;; this is not the first time we have viewed this scalar
-               (m/map-vals (fn [v] {:after v}) (select-keys scalar1 [:name :description :definition]))
-               ;; diff based on the incoming scalars
-               (let [base-diff (revision/default-diff-map this
-                                                          (select-keys scalar1 [:name :value :description :definition])
-                                                          (select-keys scalar2 [:name :value :description :definition]))]
-                    (cond-> (merge-with merge
-                                        (m/map-vals (fn [v] {:after v}) (:after base-diff))
-                                        (m/map-vals (fn [v] {:before v}) (:before base-diff)))
-                            (or (get-in base-diff [:after :definition])
-                                (get-in base-diff [:before :definition]))
-                            (assoc :definition {
-                                                :before (get-in scalar1 [:definition])
-                                                :after (get-in scalar2 [:definition])})))))
+   "Gets and returns a diff between two `Scalar` types into a third."
+   [this scalar1 scalar2]
+   (if-not scalar1
+     ;; this is not the first time we have viewed this scalar
+     (m/map-vals (fn [v] {:after v}) (select-keys scalar1 [:name :value :description :definition]))
+     ;; diff based on the incoming scalars
+     (let [base-diff (revision/default-diff-map this
+        (select-keys scalar1 [:name :value :description :definition])
+        (select-keys scalar2 [:name :value :description :definition]))]
+      (cond-> (merge-with merge
+                  (m/map-vals (fn [v] {:after v}) (:after base-diff))
+                  (m/map-vals (fn [v] {:before v}) (:before base-diff)))
+                (or (get-in base-diff [:after :definition])
+                  (get-in base-diff [:before :definition]))
+              (assoc :definition {
+                                  :before (get-in scalar1 [:definition])
+                                      :after (get-in scalar2 [:definition])})))))
 
 (u/strict-extend (class Scalar)
-       revision/IRevisioned
-       (merge revision/IRevisionedDefaults
-              {:serialize-instance serialize-scalar
-               :diff-map           diff-scalar}))
+   revision/IRevisioned
+   (merge revision/IRevisionedDefaults
+          {:serialize-instance serialize-scalar
+           :diff-map           diff-scalar}))
 
 
 ;;; -------------------------------------------------- Lifecycle And Persistence --------------------------------------------------
@@ -115,7 +118,7 @@
              (integer? creator-id)
              (map? definition)]}
       (let [scalar (db/insert! Scalar
-                     :created_by  creator-id
+                     :creator_id  creator-id
                      :name        scalar-name
                      :value       scalar-value
                      :is_active   true
@@ -161,13 +164,12 @@
        Returns the updated `Scalar` or throws an Exception."
       [{:keys [id name definition scalar-value revision_message], :as body} user-id]
       {:pre [(integer? id)
-             (integer? scalar-value)
              (string?  name)
              (map? definition)
              (string? revision_message)
-             (string? user-id)]}
+             (integer? user-id)]}
       (db/update! Scalar id
-        (select-keys body #{:definition :scalar-value :description :name}))
+        (select-keys body #{:definition :value :scalar-value :description :name}))
       (u/prog1 (fetch-scalar id) (events/publish-event! :scalar_update (assoc <> :actor_id user-id, :revision_message revision_message))))
 
 (defn delete!

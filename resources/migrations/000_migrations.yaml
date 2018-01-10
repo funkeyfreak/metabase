@@ -4010,7 +4010,7 @@ databaseChangeLog:
                     foreignKeyName: fk_scalar_ref_creator_id
                     deferrable: false
                     initiallyDeferred: false
-                  name: created_by
+                  name: creator_id
                   type: int
               - column:
                   constraints:
@@ -4018,10 +4018,8 @@ databaseChangeLog:
                   name: name
                   type: varchar(254)
               - column:
-                  constraints:
-                    nullable: false
                   name: value
-                  type: int
+                  type: float
               - column:
                   name: description
                   type: text
@@ -4037,8 +4035,6 @@ databaseChangeLog:
                   name: definition
                   type: text
               - column:
-                  constraints:
-                    nullable: false
                   name: date
                   type: DATETIME
               - column:
@@ -4073,16 +4069,16 @@ databaseChangeLog:
             tableName: report_dashboardcard
             columnName: card_id
             columnDataType: int
-  - changeSet:
-      id: 73
-      author: funkeyfreak
-      comment: 'Added UnifyPlatform 0.1.0'
-        # added revision_message to Scalar, will allow for a message to be added upon Scalar update
-      changes:
-        - addColumn:
-              tableName: scalar
-              remarks: 'Added a revision_message field'
-              columns:
-                - column:
-                    name: revision_message
-                    type: varchar(254)
+ # - changeSet:
+ #     id: 73
+ #     author: funkeyfreak
+ #     comment: 'Added UnifyPlatform 0.1.0'
+ #       # added revision_message to Scalar, will allow for a message to be added upon Scalar update
+ #     changes:
+ #       - addColumn:
+ #             tableName: scalar
+ #             remarks: 'Added a revision_message field'
+ #             columns:
+ #               - column:
+ #                   name: revision_message
+ #                   type: varchar(254)
