@@ -19,6 +19,7 @@
              [label :as label]
              [ldap :as ldap]
              [metric :as metric]
+             [scalar :as scalar]
              [notify :as notify]
              [permissions :as permissions]
              [preview-embed :as preview-embed]
@@ -73,6 +74,7 @@
   (context "/label"           [] (+auth label/routes))
   (context "/ldap"            [] (+auth ldap/routes))
   (context "/metric"          [] (+auth metric/routes))
+  (context "/scalar"          [] (+auth scalar/routes))
   (context "/notify"          [] (+apikey notify/routes))
   (context "/permissions"     [] (+auth permissions/routes))
   (context "/preview_embed"   [] (+auth preview-embed/routes))

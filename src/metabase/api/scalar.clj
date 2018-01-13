@@ -16,19 +16,31 @@
 ;; Creates a scalar by it's id,
 ;; Returns an object representing the new scalarle
 (api/defendpoint POST "/"
-                 "Create a new `Scalar`."
-                 [:as {{:keys [name value description definition date]} :body}]
-                 {name su/NonBlankString
+   "Create a new `Scalar`."
+   [:as {{:keys [name value description definition date]} :body}]
+   {name su/NonBlankString
     definition su/Map}
-                 (api/check-500 (scalar/create! name value description api/*current-user-id* date definition)))
+   (api/check-500 (scalar/create! name value description api/*current-user-id* date definition)))
+
+;; Method == GET /api/scalar
+;; Fetch all scalar values
+;; Returns all scalars in metabase's internal database
+(api/defendpoint GET "/"
+  "Fetch *all* `Scalar` values."
+  [id]
+  (as-> (db/select Scalar, :is_active true, {:order-by [:%lower.name]}) <>
+        (hydrate <> :creator)
+        (filter mi/can-read? <>)))
 
 ;; Method == GET /api/scalar/:id
 ;; Fetch a scalar by it's id,
 ;; Returns a single scalar which matches this id
 (api/defendpoint GET "/:id"
-  "Fetch a `Scalar` by its ID"
+   "Fetch a `Scalar` by its ID"
    [id]
-   (api/read-check (scalar/fetch-scalar id)))
+   ;;(api/read-check (scalar/fetch-scalar id)) TODO: funkeyfreak - make this work
+   ;; Table permissions need to be set
+   (scalar/fetch-scalar id))
 
 ;; Method == GET /api/scalar/name
 ;; Fetch a scalar by it's name,
@@ -37,18 +49,21 @@
    "Fetch a `Scalar` by its Name"
    [name]
    {name su/NonBlankString}
-   (api/read-check (scalar/fetch-scalars name)))
+   ;;(api/read-check (scalar/fetch-scalars name)) TODO: funkeyfreak - make this work
+   ;; Table permissions need to be set
+   (scalar/fetch-scalars name))
 
 ;; Method == PUT /api/scalar/:id
 ;; Update a scalar by it's id
 ;; Returns the updated scalar
 (api/defendpoint PUT "/:id"
    "Update a `Scalar` denoted by it's ID"
-   [id :as {{:keys [name value definition revision_msg], :as body} :body}]
+   [id :as {{:keys [name value definition revision_message], :as body} :body}]
    {name          su/NonBlankString
-    revision_msg  su/NonBlankString
+    revision_message  su/NonBlankString
     definition    su/Map}
-   (api/write-check Scalar id)
+    ;;(api/write-check Scalar id) TODO: funkeyfreak - make this work
+    ;; Table permissions need to be set
    (scalar/update!
      (assoc (select-keys body #{:definition :description :name :value :revision_message}) :id id)
      api/*current-user-id*))
@@ -61,7 +76,7 @@
    [id revision_message]
    {revision_message su/NonBlankString}
    (api/check-superuser)
-   (scalar/delete! id api/*current-user-id* revision_message ))
+   (scalar/delete! id api/*current-user-id* revision_message))
 
 ;; Method == GET /api/scalar/:id/revisions
 ;; Gets the revisions of the `Scalar` denoted by the given ID
@@ -69,7 +84,8 @@
 (api/defendpoint GET "/:id/revisions"
  "Fetch `Revisions` for the `Scalar` denoted by ID."
  [id]
- (api/write-check Scalar id)
+ ;;(api/write-check Scalar id) TODO: funkeyfreak - make this work
+ ;; Table permissions need to be set
  (revision/revisions+details Scalar id))
 
 ;; Method == POST /api/scalar/:id/revert
@@ -79,7 +95,8 @@
    "Revert a `Scalar` to a prior `Revision`."
    [id :as {{:keys [revision_id]} :body}]
    {revision_id su/IntGreaterThanZero}
-   (api/write-check Scalar id)
+   ;;(api/write-check Scalar id) TODO: funkeyfreak - make this work
+   ;; Table permissions need to be set
    (revision/revert!
      :entity        Scalar
      :id            id

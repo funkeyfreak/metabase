@@ -52,6 +52,7 @@
              [pulse-channel :refer [PulseChannel]]
              [pulse-channel-recipient :refer [PulseChannelRecipient]]
              [revision :refer [Revision]]
+             [scalar   :refer [Scalar]]
              [segment :refer [Segment]]
              [session :refer [Session]]
              [setting :refer [Setting]]
@@ -75,6 +76,7 @@
    FieldValues
    Segment
    Metric
+   Scalar
    MetricImportantField
    Revision
    ViewLog
