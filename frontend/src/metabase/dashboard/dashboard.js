@@ -4,7 +4,7 @@ import { assoc, dissoc, assocIn, getIn, chain } from "icepick";
 import _ from "underscore";
 import moment from "moment";
 
-import { handleActions, combineReducers, createAction, createThunkAction } from "metabase/lib/redux";
+import {handleActions, combineReducers, createAction, createThunkAction, fetchData} from "metabase/lib/redux";
 import { normalize, schema } from "normalizr";
 
 import { saveDashboard } from "metabase/dashboards/dashboards";
@@ -23,10 +23,11 @@ import { createCard } from "metabase/lib/card";
 import { addParamValues, fetchDatabaseMetadata } from "metabase/redux/metadata";
 import { push } from "react-router-redux";
 
-import { DashboardApi, CardApi, RevisionApi, PublicApi, EmbedApi } from "metabase/services";
+import { DashboardApi, CardApi, RevisionApi, PublicApi, EmbedApi, ScalarApi } from "metabase/services";
 
 import { getDashboard, getDashboardComplete } from "./selectors";
 import {getCardAfterVisualizationClick} from "metabase/visualizations/lib/utils";
+import {ScalarSchema} from "metabase/schema";
 
 const DATASET_SLOW_TIMEOUT = 15 * 1000;
 
@@ -75,6 +76,57 @@ export const SET_PARAMETER_MAPPING = "metabase/dashboard/SET_PARAMETER_MAPPING";
 export const SET_PARAMETER_NAME = "metabase/dashboard/SET_PARAMETER_NAME";
 export const SET_PARAMETER_VALUE = "metabase/dashboard/SET_PARAMETER_VALUE";
 export const SET_PARAMETER_DEFAULT_VALUE = "metabase/dashboard/SET_PARAMETER_DEFAULT_VALUE";
+
+// SCALAR actions
+
+export const GET_SCALAR    = "metabase/dashboard/GET_SCALAR";
+export const CREATE_SCALAR = "metabase/dashboard/CREATE_SCALAR";
+export const UPDATE_SCALAR = "metabase/dashboard/UPDATE_SCALAR";
+export const DELETE_SCALAR = "metabase/dashboard/DELETE_SCALAR";
+export const GET_SCALAR_BY_KEY =  "metabase/dashboard/GET_SCALAR_BY_KEY";
+export const FETCH_SCALARS = "metabase/dashboard/FETCH_SCALARS";
+export const FETCH_KEY_SCALAR = "metabase/metadata/FETCH_KEY_SCALAR";
+
+
+
+export const getScalar     = createAction(GET_SCALAR, (id) => ScalarApi.get({ id }));
+export const createScalar  = createAction(CREATE_SCALAR, ScalarApi.create);
+export const updateScalar  = createAction(UPDATE_SCALAR, ScalarApi.update);
+export const deleteScalar  = createAction(DELETE_SCALAR, ScalarApi.delete);
+export const getByKeyScalar= createAction(GET_SCALAR_BY_KEY, (key) => ScalarApi.listByKey({key}));
+
+
+export const fetchKeyScalar = createThunkAction(FETCH_KEY_SCALAR,
+    (scalarName) => {
+        return async (dispatch, getState) => {
+            const requestStatePath = ["metadata", "scalar"];
+            const existingStatePath = requestStatePath;
+            let scalars =  await ScalarApi.listByKey({ scalarName: scalarName });
+            //TODO: funkeyfreak - you could add the calculation logic here...
+            return  normalize(scalars, [ScalarSchema]);
+        };
+    });
+
+export const fetchScalars  = createThunkAction(FETCH_SCALARS, (reload = false) => {
+    return async (dispatch, getState) => {
+        const requestStatePath = ["metadata", "scalars"];
+        const existingStatePath = requestStatePath;
+        const getData = async () => {
+            const scalars = await ScalarApi.list();
+            return normalize(scalars, [ScalarSchema])
+        };
+        return await fetchData({
+            dispatch,
+            getState,
+            requestStatePath,
+            existingStatePath,
+            getData,
+            reload
+        });
+    };
+});
+
+// END SCALAR ACTIONS
 
 function getDashboardType(id) {
     if (Utils.isUUID(id)) {
@@ -136,6 +188,34 @@ export const addCardToDashboard = function({ dashId, cardId }: { dashId: DashCar
     };
 }
 
+export const addScalarDashCardToDashbiard = function( {dashId, cardId}: { dashId: DashCardId, cardId: CardId}) {
+    return function(dispatch, getState) {
+
+        /*
+        return function(dispatch, getState) {
+        const { dashboards, dashcards, cards } = getState().dashboard;
+        const dashboard: DashboardWithCards = dashboards[dashId];
+        const existingCards: Array<DashCard> = dashboard.ordered_cards.map(id => dashcards[id]).filter(dc => !dc.isRemoved);
+        const card: Card = cards[cardId];
+        const dashcard: DashCard = {
+            id: Math.random(), // temporary id
+            dashboard_id: dashId,
+            card_id: card.id,
+            card: card,
+            series: [],
+            ...getPositionForNewDashCard(existingCards),
+            parameter_mappings: [],
+            visualization_settings: {}
+        };
+        dispatch(createAction(ADD_CARD_TO_DASH)(dashcard));
+        dispatch(fetchCardData(card, dashcard, { reload: true, clear: true }));
+    };
+         */
+        const { dashboards, dashcards, cards } = getState().dashboard;
+    }
+}
+
+
 export const addDashCardToDashboard = function({ dashId, dashcardOverrides }: { dashId: DashCardId, dashcardOverrides: { } }) {
     return function(dispatch, getState) {
         const { dashboards, dashcards } = getState().dashboard;
@@ -155,6 +235,7 @@ export const addDashCardToDashboard = function({ dashId, dashcardOverrides }: { 
         dispatch(createAction(ADD_CARD_TO_DASH)(dashcard));
     };
 }
+
 
 export const addTextDashCardToDashboard = function({ dashId }: { dashId: DashCardId }) {
     const virtualTextCard = createCard();
@@ -435,6 +516,7 @@ export const updateEmbeddingParams = createAction(UPDATE_EMBEDDING_PARAMS, ({ id
     DashboardApi.update({ id, embedding_params })
 );
 
+//TODO: funkeyfreak - Add scalar revisions here, see metabase/admin/datamodel/datamodel.js @fetchRevisions
 export const fetchRevisions = createThunkAction(FETCH_REVISIONS, function({ entity, id }) {
     return async function(dispatch, getState) {
         let revisions = await RevisionApi.list({ entity, id });
@@ -584,6 +666,19 @@ export const navigateToNewCardFromDashboard = createThunkAction(
 
 // reducers
 
+// SCALAR reducers
+
+//should handle all the scalar specific api actions - will be exported for use in dashcards OR dashboard
+const scalars = handleActions({
+    [GET_SCALAR]: {next: (state, {payload}) => ({...state, [payload.id]: momentifyTimestamps(payload)})},
+    [GET_SCALAR_BY_KEY]: {next: (state, {payload}) => ({...state, [payload.id]: momentifyTimestamps(payload)})},
+    [CREATE_SCALAR]: {next: (state, {payload}) => ({...state, [payload.id]: momentifyTimestamps(payload)})},
+    [UPDATE_SCALAR]: {next: (state, {payload}) => ({...state, [payload.id]: momentifyTimestamps(payload)})},
+    [DELETE_SCALAR]: { next: (state, { payload }) => { state = { ...state }; delete state[payload.id]; return state; }}
+
+},{});
+// END: SCALAR reducers
+
 const dashboardId = handleActions({
     [INITIALIZE]: { next: (state) => null },
     [FETCH_DASHBOARD]: { next: (state, { payload: { dashboardId } }) => dashboardId }
@@ -712,6 +807,7 @@ export default combineReducers({
     editingParameterId,
     revisions,
     dashcardData,
+    scalars,
     slowCards,
     parameterValues
 });

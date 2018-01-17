@@ -81,6 +81,14 @@ export default class Aggregation {
     }
 
     /**
+     * Get scalarId from a scalar Aggregation clause
+     * Returns `null` if the clause does not represent a scalar
+     */
+    getScalar(): ?ScalarId {
+        return AggregationClause_DEPRECATED.getScalar(this.clause);
+    }
+
+    /**
      * Is a custom expression created with the expression editor
      */
     isCustom(): boolean {

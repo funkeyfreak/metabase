@@ -45,6 +45,7 @@
                       "metric"    (db/select-ids 'Metric,    :id [:in ids], :is_active true)
                       "pulse"     (db/select-ids 'Pulse,     :id [:in ids])
                       "segment"   (db/select-ids 'Segment,   :id [:in ids], :is_active true)
+                      "scalar"    (db/select-ids 'Scalar,    :id [:in ids], :is_active true)
                       nil)}))) ; don't care about other models
 
 (defn- add-model-exists-info

@@ -33,3 +33,11 @@
     (match aggregation-clause
       ["METRIC" (metric-id :guard integer?)] #{metric-id}
       _                                       nil)))
+
+(defn extract-scalar-ids
+  "Return the IDs of all `Scalar` objects in the query. (I think that's what this does? :flushed:)" ;; TODO: funkeyfreak - is it what this does?
+  [query]
+  (when-let [aggregation-clause (:aggregation query)]
+    (match aggregation-clause
+           ["SCALAR" (scalar-id :guard integer?)] #{scalar-id}
+           _                                       nil)))

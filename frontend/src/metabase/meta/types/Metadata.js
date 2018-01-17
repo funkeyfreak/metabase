@@ -7,6 +7,7 @@ import type { Table, TableId } from "metabase/meta/types/Table";
 import type { Field, FieldId } from "metabase/meta/types/Field";
 import type { Segment, SegmentId } from "metabase/meta/types/Segment";
 import type { Metric, MetricId } from "metabase/meta/types/Metric";
+import type { Scalar, ScalarId } from "metabase/meta/types/Scalar";
 
 export type Metadata = {
     databases: { [id: DatabaseId]: DatabaseMetadata },
@@ -14,6 +15,7 @@ export type Metadata = {
     fields:    { [id: FieldId]:    FieldMetadata },
     metrics:   { [id: MetricId]:   MetricMetadata },
     segments:  { [id: SegmentId]:  SegmentMetadata },
+    scalars:   { [id: ScalarId]:   ScalarMetadata },
 }
 
 export type DatabaseMetadata = Database & {
@@ -48,6 +50,13 @@ export type SegmentMetadata = Segment & {
 
 export type MetricMetadata = Metric & {
     table:              TableMetadata,
+}
+
+export type ScalarMetadata = Scalar & {
+    name:               string,
+    value:              number,
+    date:               ISO8601Time,
+    //table:              TableMetadata,
 }
 
 export type FieldValue = {
@@ -99,6 +108,7 @@ export type FieldOptions = {
 };
 
 import Dimension from "metabase-lib/lib/Dimension";
+import type {ISO8601Time} from "metabase/meta/types/index";
 
 export type DimensionOptions = {
     count: 0,

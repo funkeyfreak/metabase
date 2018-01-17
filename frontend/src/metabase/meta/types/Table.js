@@ -4,6 +4,7 @@ import type { ISO8601Time } from ".";
 import type { Field } from "./Field";
 import type { Segment } from "./Segment";
 import type { Metric } from "./Metric";
+import type { Scalar } from "./Scalar"
 import type { DatabaseId } from "./Database";
 
 export type TableId = number;
@@ -31,6 +32,7 @@ export type Table = {
     fields:                  Field[],
     segments:                Segment[],
     metrics:                 Metric[],
+    scalars:                 Scalar[],
 
     rows:                    number,
 

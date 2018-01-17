@@ -29,6 +29,7 @@
              [pulse-channel :refer [PulseChannel]]
              [query-cache :refer [QueryCache]]
              [query-execution :refer [QueryExecution]]
+             [scalar :refer [Scalar]]
              [segment :refer [Segment]]
              [table :refer [Table]]
              [user :refer [User]]]
@@ -284,6 +285,11 @@
   "Get metrics based on Metrics."
   []
   {:metrics (db/count Metric)})
+
+(defn- scalar-metrics
+  "Get metrics based on Scalars."
+  []
+  {:scalars (db/count Scalar)})
 
 
 ;;; Execution Metrics

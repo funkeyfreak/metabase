@@ -11,7 +11,8 @@
             [clojure.walk :as walk]
             [metabase.models
              [metric :refer [Metric]]
-             [segment :refer [Segment]]]
+             [segment :refer [Segment]]
+             [scalar :refer [Scalar]]]
             [metabase.query-processor
              [interface :as i]
              [util :as qputil]]
@@ -33,6 +34,23 @@
            (and (seq clause)
                 (not (every? nil? clause))))))
 
+
+;;; +----------------------------------------------------------------------------------------------------------------+
+;;; |                                                    SCALARS                                                    |
+;;; +----------------------------------------------------------------------------------------------------------------+
+
+(defn- scalar? [definition]
+  (and (is-clause? #{:scalar} definition)))
+
+(defn- scalar-id [scalar]
+  (when (scalar? scalar)))
+
+(defn- expand-scalars
+  "Takes a query and extracts the underlying object from our database"
+  [query-dict]
+  (cond
+    (non-empty-clause? (get-in query-dict [:query :keypair]))
+    (update-in query-dict [:query :keypair] )))
 
 ;;; +----------------------------------------------------------------------------------------------------------------+
 ;;; |                                                    SEGMENTS                                                    |
@@ -98,10 +116,12 @@
     ag-clause))
 
 (defn- expand-metric [metric-clause filter-clauses-atom]
-  (let [{filter-clause :filter, ag-clause :aggregation} (db/select-one-field :definition Metric
+  (let [{filter-clause :filter, ag-clause :aggregation, sc-clause :keypair} (db/select-one-field :definition Metric
                                                           :id (metric-id metric-clause))]
     (when filter-clause
       (swap! filter-clauses-atom conj filter-clause))
+    (when sc-clause
+      swap! )
     (maybe-unnest-ag-clause ag-clause)))
 
 (defn- expand-metrics-in-ag-clause [query-dict filter-clauses-atom]
@@ -147,12 +167,12 @@
 ;;; |                                                   MIDDLEWARE                                                   |
 ;;; +----------------------------------------------------------------------------------------------------------------+
 
-(defn- expand-metrics-and-segments "Expand the macros (SEGMENT, METRIC) in a QUERY."
+(defn- expand-metrics-and-segments "Expand the macros (SEGMENT, METRIC, SCALAR) in a QUERY."
   [query]
   (-> query
       expand-metrics
-      expand-segments))
-
+      expand-segments
+      expand-scalars))
 
 (defn- expand-macros* [query]
   (if-not (qputil/mbql-query? query)

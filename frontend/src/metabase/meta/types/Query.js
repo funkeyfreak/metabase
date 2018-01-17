@@ -4,6 +4,7 @@ import type { TableId } from "./Table";
 import type { FieldId, BaseType } from "./Field";
 import type { SegmentId } from "./Segment";
 import type { MetricId } from "./Metric";
+import type { ScalarId } from "./Scalar";
 import type { ParameterType } from "./Parameter";
 
 export type ExpressionName = string;
@@ -136,6 +137,9 @@ export type OrderBy = [Field, "ascending"|"descending"|"asc"|"desc"];
 
 export type LimitClause = number;
 
+// NOTE: currently the backend expects SCALAR to be uppercase
+type ScalarField    = ["SCALAR", ScalarId];
+
 export type Field =
     ConcreteField |
     AggregateField;
@@ -145,7 +149,10 @@ export type ConcreteField =
     ForeignFieldReference |
     ExpressionReference |
     DatetimeField |
-    BinnedField;
+    BinnedField |
+    ScalarField;
+
+
 
 export type LocalFieldReference =
     ["field-id", FieldId] |

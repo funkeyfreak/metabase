@@ -210,9 +210,11 @@ export const MetricApi = {
     delete:                   DELETE("/api/metric/:metricId"),
 };
 
-export const ScalarAPI = {
+export const ScalarApi = {
     list:                       GET("/api/scalar"),
     listByKey:                  GET("/api/scalar/:scalarName"),
+    //TODO:  funkeyfreak - implement this api endpoint - will make things a bit easier
+    listByKeyDate:              GET("/api/scalar/:scalarName&:start&:end "),
     create:                     POST("/api/scalar"),
     get:                        GET("/api/scalar/:scalarId"),
     update:                     PUT("/api/scalar/:id"),
