@@ -206,6 +206,11 @@
         form
         (recur form more)))))
 
+(defn apply-scalar
+  "Apply a `scalar` clauses to HONEYSQL-FORM. Default implementation of `apply-scalar"
+  [driver honeysql-form {scalars :scalar}]
+  )
+
 (defn apply-breakout
   "Apply a `breakout` clause to HONEYSQL-FORM. Default implementation of `apply-breakout` for SQL drivers."
   [driver honeysql-form {breakout-fields :breakout, fields-fields :fields :as query}]

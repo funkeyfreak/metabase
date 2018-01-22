@@ -469,15 +469,16 @@
 (def ^:ql ^{:arglists '([rvalue1 rvalue2 & more]), :added "0.17.0"} * "Arithmetic multiplication function." (partial expression-fn :*))
 (def ^:ql ^{:arglists '([rvalue1 rvalue2 & more]), :added "0.17.0"} / "Arithmetic division function."       (partial expression-fn :/))
 
-;;; Metric & Segment handlers
+;;; Metric, Scalar, & Segment handlers
 
-;; These *do not* expand the normal Metric and Segment macros used in normal queries; that's handled in
+;; These *do not* expand the normal Metric, Scalar, and Segment macros used in normal queries; that's handled in
 ;; `metabase.query-processor.macros` before this namespace ever even sees the query. But since the GA driver's queries
-;; consist of custom `metric` and `segment` clauses we need to at least accept them without barfing so we can expand a
+;; consist of custom `metric`, `scalar` and `segment` clauses we need to at least accept them without barfing so we can expand a
 ;; query in order to check what permissions it requires.  TODO - in the future, we should just make these functions
-;; expand Metric and Segment macros for consistency with the rest of the MBQL clauses
+;; expand Metric, Segment, and Segment macros for consistency with the rest of the MBQL clauses
 (defn ^:ql metric  "Placeholder expansion function for GA metric clauses. (This does not expand normal Metric macros; that is done in `metabase.query-processor.macros`.)"   [& _])
 (defn ^:ql segment "Placeholder expansion function for GA segment clauses. (This does not expand normal Segment macros; that is done in `metabase.query-processor.macros`.)" [& _])
+(defn ^:ql scalar "Placeholder expansion function for GA scalar clauses. (This does not expand normal Scalar macros; that is done in `metabase.query-processor.macros`.)" [& _])
 
 
 ;;; +----------------------------------------------------------------------------------------------------------------+
