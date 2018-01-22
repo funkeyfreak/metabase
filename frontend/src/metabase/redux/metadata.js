@@ -10,12 +10,102 @@ import {
 } from "metabase/lib/redux";
 
 import { normalize } from "normalizr";
-import { DatabaseSchema, TableSchema, FieldSchema, SegmentSchema, MetricSchema } from "metabase/schema";
+import { DatabaseSchema, TableSchema, FieldSchema, SegmentSchema, MetricSchema, ScalarSchema } from "metabase/schema";
 
 import { getIn, assocIn } from "icepick";
 import _ from "underscore";
 
-import { MetabaseApi, MetricApi, SegmentApi, RevisionsApi } from "metabase/services";
+import { MetabaseApi, MetricApi, SegmentApi, RevisionsApi, ScalarApi } from "metabase/services";
+
+// Scalar Additions
+
+export const FETCH_SCALARS = "metabase/metadata/FETCH_SCALARS";
+export const fetchScalars  = createThunkAction(FETCH_SCALARS, (reload = false) => {
+    return async (dispatch, getState) => {
+        const requestStatePath = ["metadata", "scalars"];
+        const existingStatePath = requestStatePath;
+        const getData = async () => {
+            const scalars = await ScalarApi.list();
+            return normalize(scalars, [ScalarSchema])
+        };
+        return await fetchData({
+            dispatch,
+            getState,
+            requestStatePath,
+            existingStatePath,
+            getData,
+            reload
+        });
+    };
+});
+
+export const UPDATE_SCALAR = "metabase/metadate/UPDATE_SCALAR";
+export const updateScalar = createThunkAction(UPDATE_SCALAR, function (scalar){
+    return async (dispatch, getState) => {
+        const requestStatePath = ["metadata", "scalars", scalar.id];
+        const existingStatePath = ["metadata", "scalars"];
+        const dependentRequestStatePaths = [['metadata', 'revisions', 'scalar', scalar.id]];
+
+        const putData = async () => {
+            const updatedScalar = await ScalarApi.update(scalar);
+            return normalize(updatedScalar, ScalarSchema);
+        };
+
+        return await updateData({
+            dispatch,
+            getState,
+            requestStatePath,
+            existingStatePath,
+            dependentRequestStatePaths,
+            putData
+        });
+    };
+});
+
+export const FETCH_KEY_SCALAR = "metabase/metadata/FETCH_KEY_SCALAR";
+export const fetchKeyScalar   = createThunkAction(FETCH_KEY_SCALAR,
+    (reload = false) => function(scalarName){
+        return async (dispatch, getState) => {
+            const requestStatePath = ["metadata", "scalar"];
+            const existingStatePath = requestStatePath;
+            const getData = async() => {
+                const scalars = await ScalarApi.listByKey(scalarName);
+                return normalize(scalars, [ScalarSchema]);
+            };
+
+            return await fetchData({
+                dispatch,
+                getState,
+                requestStatePath,
+                existingStatePath,
+                getData,
+                reload
+            });
+        };
+    });
+
+//TODO: funkeyfreak - We still need work here.... The endpoint is not completed as of yet
+export const FETCH_DATE_SCALAR = "metabase/metadata/FETCH_DATE_SCALAR";
+export const fetchDateScalar   = fetchDateScalar(FETCH_DATE_SCALAR, (reload = false) => function(scalarName, start,end) {
+   return async (dispatch, getState) => {
+       const requestStatePath = ["metadata", "scalar"];
+       const existingStatePath = requestStatePath;
+       const getData = async() => {
+           const scalars = await ScalarApi.listByKeyDate(scalarName, start, end);
+           return normalize(scalars, [ScalarSchema]);
+       };
+       return await fetchData({
+           dispatch,
+           getState,
+           requestStatePath,
+           existingStatePath,
+           getData,
+           reload
+       });
+   };
+});
+
+// End: Scalar Additions
 
 export const FETCH_METRICS = "metabase/metadata/FETCH_METRICS";
 export const fetchMetrics = createThunkAction(FETCH_METRICS, (reload = false) => {

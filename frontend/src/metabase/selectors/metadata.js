@@ -8,6 +8,7 @@ import Table from "metabase-lib/lib/metadata/Table";
 import Field from "metabase-lib/lib/metadata/Field";
 import Metric from "metabase-lib/lib/metadata/Metric";
 import Segment from "metabase-lib/lib/metadata/Segment";
+import Scalar from "metabase-lib/lib/metadata/Scalar";
 
 import _ from "underscore";
 import { shallowEqual } from "recompose";
@@ -20,7 +21,7 @@ import {
 } from "metabase/lib/schema_metadata";
 import { getIn } from "icepick";
 
-export const getNormalizedMetadata = state => state.metadata;
+export const getNormalizedMetadata = state => state.metadata
 
 // fully denomalized, raw "entities"
 export const getNormalizedDatabases = state => state.metadata.databases;
@@ -28,6 +29,7 @@ export const getNormalizedTables = state => state.metadata.tables;
 export const getNormalizedFields = state => state.metadata.fields;
 export const getNormalizedMetrics = state => state.metadata.metrics;
 export const getNormalizedSegments = state => state.metadata.segments;
+export const getNormalizedScalar   = state => state.metadata.scalars;
 
 export const getMetadataFetched = state => state.requests.fetched.metadata || {}
 
@@ -54,6 +56,7 @@ export const getShallowTables = getNormalizedTables;
 export const getShallowFields = getNormalizedFields;
 export const getShallowMetrics = getNormalizedMetrics;
 export const getShallowSegments = getNormalizedSegments;
+export const getShallowScalar = getNormalizedScalar;
 
 // fully connected graph of all databases, tables, fields, segments, and metrics
 export const getMetadata = createSelector(
@@ -62,22 +65,28 @@ export const getMetadata = createSelector(
         getNormalizedTables,
         getNormalizedFields,
         getNormalizedSegments,
-        getNormalizedMetrics
+        getNormalizedMetrics,
+        getNormalizedScalar
     ],
-    (databases, tables, fields, segments, metrics): Metadata => {
+    (databases, tables, fields, segments, metrics, scalars): Metadata => {
         const meta = new Metadata();
         meta.databases = copyObjects(meta, databases, Database)
         meta.tables    = copyObjects(meta, tables, Table)
         meta.fields    = copyObjects(meta, fields, Field)
         meta.segments  = copyObjects(meta, segments, Segment)
         meta.metrics   = copyObjects(meta, metrics, Metric)
+        meta.scalars   = copyObjects(meta, scalars, Scalar)
         // meta.loaded    = getLoadedStatuses(requestStates)
+        //Should add the scalar type as a sub-header under each database entry
+        hydrateList(meta.databases, "scalars", meta.scalars);
 
         hydrateList(meta.databases, "tables", meta.tables);
 
         hydrateList(meta.tables, "fields", meta.fields);
         hydrateList(meta.tables, "segments", meta.segments);
         hydrateList(meta.tables, "metrics", meta.metrics);
+        //Add own entry for Scalar type :)
+        hydrateList(meta.scalars, "scalars", meta.scalars);
 
         hydrate(meta.tables, "db", t => meta.databases[t.db_id || t.db]);
 
@@ -123,6 +132,11 @@ export const getMetrics = createSelector(
 export const getSegments = createSelector(
     [getMetadata],
     ({ segments }) => segments
+);
+
+export const getScalars = createSelector(
+    [getMetadata],
+    ({ scalars }) => scalars
 );
 
 // FIELD VALUES FOR DASHBOARD FILTERS / SQL QUESTION PARAMETERS

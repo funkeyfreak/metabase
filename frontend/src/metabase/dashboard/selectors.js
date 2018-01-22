@@ -40,6 +40,7 @@ export const getSlowCards         = state => state.dashboard.slowCards;
 export const getCardIdList        = state => state.dashboard.cardList;
 export const getRevisions         = state => state.dashboard.revisions;
 export const getParameterValues   = state => state.dashboard.parameterValues;
+export const getAllScalars        = state => state.dashboard.scalars;
 
 export const getDashboard = createSelector(
     [getDashboardId, getDashboards],

@@ -8,9 +8,11 @@ export const TableSchema = new schema.Entity('tables');
 export const FieldSchema = new schema.Entity('fields');
 export const SegmentSchema = new schema.Entity('segments');
 export const MetricSchema = new schema.Entity('metrics');
+export const ScalarSchema = new schema.Entry('scalars')
 
 DatabaseSchema.define({
-    tables: [TableSchema]
+    tables: [TableSchema],
+    scalars: [ScalarSchema]
 });
 
 TableSchema.define({
@@ -31,4 +33,8 @@ SegmentSchema.define({
 
 MetricSchema.define({
     table: TableSchema,
+});
+
+ScalarSchema.define({
+    scalar: ScalarSchema
 });
