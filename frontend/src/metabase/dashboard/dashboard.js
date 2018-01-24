@@ -4,8 +4,10 @@ import { assoc, dissoc, assocIn, getIn, chain } from "icepick";
 import _ from "underscore";
 import moment from "moment";
 
-import {handleActions, combineReducers, createAction, createThunkAction, fetchData} from "metabase/lib/redux";
+import {handleActions, combineReducers, createAction, momentifyTimestamps, createThunkAction, fetchData} from "metabase/lib/redux";
 import { normalize, schema } from "normalizr";
+
+import MetabaseAnalytics from "metabase/lib/analytics";
 
 import { saveDashboard } from "metabase/dashboards/dashboards";
 
@@ -27,7 +29,6 @@ import { DashboardApi, CardApi, RevisionApi, PublicApi, EmbedApi, ScalarApi } fr
 
 import { getDashboard, getDashboardComplete } from "./selectors";
 import {getCardAfterVisualizationClick} from "metabase/visualizations/lib/utils";
-import {ScalarSchema} from "metabase/schema";
 
 const DATASET_SLOW_TIMEOUT = 15 * 1000;
 
@@ -79,50 +80,125 @@ export const SET_PARAMETER_DEFAULT_VALUE = "metabase/dashboard/SET_PARAMETER_DEF
 
 // SCALAR actions
 
+function handleError (e, locale){
+    let res;
+    if (e.data && e.data.errors) {
+        res =  e.data.errors;
+    } else if (e.data && e.data.message) {
+        res =  { _error: e.data.message };
+    } else {
+        res =  { _error: "An unknown error occurred in " + locale};
+    }
+    return res;
+}
+
 export const GET_SCALAR    = "metabase/dashboard/GET_SCALAR";
-export const CREATE_SCALAR = "metabase/dashboard/CREATE_SCALAR";
+export const GET_SCALAR_BY_KEY =  "metabase/dashboard/GET_SCALAR_BY_KEY";
+export const GET_SCALARS = "metabase/dashboard/GET_SCALARS"
+export const SAVE_SCALAR = "metabase/dashboard/SAVE_SCALAR";
 export const UPDATE_SCALAR = "metabase/dashboard/UPDATE_SCALAR";
 export const DELETE_SCALAR = "metabase/dashboard/DELETE_SCALAR";
-export const GET_SCALAR_BY_KEY =  "metabase/dashboard/GET_SCALAR_BY_KEY";
 export const FETCH_SCALARS = "metabase/dashboard/FETCH_SCALARS";
-export const FETCH_KEY_SCALAR = "metabase/metadata/FETCH_KEY_SCALAR";
+export const FETCH_KEYDATE_SCALAR = "metabase/dashboard/FETCH_KEYDATE_SCALAR";
 
+export const getScalar     = createAction(GET_SCALAR, (id : number) => ScalarApi.get({ id }));
 
+export const getScalars     = createAction(GET_SCALARS, ScalarApi.getAllScalars)
 
-export const getScalar     = createAction(GET_SCALAR, (id) => ScalarApi.get({ id }));
-export const createScalar  = createAction(CREATE_SCALAR, ScalarApi.create);
-export const updateScalar  = createAction(UPDATE_SCALAR, ScalarApi.update);
-export const deleteScalar  = createAction(DELETE_SCALAR, ScalarApi.delete);
-export const getByKeyScalar= createAction(GET_SCALAR_BY_KEY, (key) => ScalarApi.listByKey({key}));
+//export const createScalar  = createAction(SAVE_SCALAR, ScalarApi.create);
+//export const updateScalar  = createAction(UPDATE_SCALAR, ScalarApi.update);
+//export const deleteScalar  = createAction(DELETE_SCALAR, ScalarApi.delete);
 
+export const deleteScalar = createThunkAction(DELETE_SCALAR, (id : number) => {
+   return async (dispatch, getState) => {
+       try{
+           await ScalarApi.delete({id: id})
+           return id
+       } catch (e){
+           throw handleError(e, "deleteScalar")
+       }
+   }
+});
 
-export const fetchKeyScalar = createThunkAction(FETCH_KEY_SCALAR,
-    (scalarName) => {
-        return async (dispatch, getState) => {
-            const requestStatePath = ["metadata", "scalar"];
-            const existingStatePath = requestStatePath;
-            let scalars =  await ScalarApi.listByKey({ scalarName: scalarName });
-            //TODO: funkeyfreak - you could add the calculation logic here...
-            return  normalize(scalars, [ScalarSchema]);
-        };
-    });
-
-export const fetchScalars  = createThunkAction(FETCH_SCALARS, (reload = false) => {
+export const fetchKeyDateScalar = createThunkAction(FETCH_KEYDATE_SCALAR, (key : string, date) => {
     return async (dispatch, getState) => {
-        const requestStatePath = ["metadata", "scalars"];
-        const existingStatePath = requestStatePath;
-        const getData = async () => {
-            const scalars = await ScalarApi.list();
-            return normalize(scalars, [ScalarSchema])
+        try{
+            let response;
+            if(!date.start || !date.end || date.start === null){
+                MetabaseAnalytics.trackEvent("Scalar", "FetchKeyDate")
+                response = await ScalarApi.listByKeyDate({scalarName: key, start: date.start, end: date.end});
+
+            } else {
+                MetabaseAnalytics.trackEvent("Scalar", "FetchKey")
+                response = await ScalarApi.listByKey({scalarName: key})
+            }
+            if (response.length() === 0){
+                //TODO: funkeyfreak - logging
+            }
+            return response;
+        } catch (e){
+            throw handleError(e, "fetchKeyDateScalar")
+        }
+    }
+});
+
+
+//TODO: funkeyfreak - Add type checking on scalar object
+export const saveScalar = createThunkAction(SAVE_SCALAR, (scalar) => {
+    return async (dispatch, getState) => {
+        try{
+            if(!(!scalar.name || !scalar.value || !scalar.date)){
+                return "Please enter in a scalar definition"
+            }
+            //handle undefined description
+            if(!scalar.description){
+                scalar = {...scalar, description: null}
+            }
+
+            scalar.definition = {name: scalar.name, value: scalar.value, date: scalar.date};
+
+            //are we updating a scalar or creating a new one
+            let response;
+            if(scalar.id != null) {
+                MetabaseAnalytics.trackEvent("Scalar", "Update");
+                response = await ScalarApi.update(scalar);
+            }
+            else {
+                MetabaseAnalytics.trackEvent("Scalar", "Create");
+                response = await ScalarApi.create(scalar);
+            }
+            return response;
+        } catch(e){
+            throw handleError(e, "saveScalar");
+        }
+    }
+});
+
+export const getKeyScalar = createThunkAction(GET_SCALAR_BY_KEY,
+    (scalarName : string) => {
+        return async (dispatch, getState) => {
+            try {
+                let scalars = await ScalarApi.listByKey({scalarName: scalarName});
+                //TODO: funkeyfreak - you could add the calculation logic here...
+                return (scalars);
+            } catch (e){
+                throw handleError(e, "fetchKeyScalar");
+            }
         };
-        return await fetchData({
-            dispatch,
-            getState,
-            requestStatePath,
-            existingStatePath,
-            getData,
-            reload
-        });
+});
+
+export const fetchScalars  = createThunkAction(FETCH_SCALARS, function(){
+    return async (dispatch, getState) => {
+        try {
+            let scalars = await ScalarApi.list();
+            if (scalars.length() === 0){
+                //TODO: funkeyfreak - add some logging here...
+                return scalars
+            }
+            return scalars;
+        } catch (e) {
+            throw handleError(e, "fetchScalars");
+        }
     };
 });
 
@@ -188,32 +264,21 @@ export const addCardToDashboard = function({ dashId, cardId }: { dashId: DashCar
     };
 }
 
-export const addScalarDashCardToDashbiard = function( {dashId, cardId}: { dashId: DashCardId, cardId: CardId}) {
-    return function(dispatch, getState) {
+export const addScalarDashCardToDashboard = function( {dashId}: { dashId: DashCardId}) {
+    const virtualScalarCard = createCard();
+    virtualScalarCard.display = "scalars";
+    virtualScalarCard.archived = false;
 
-        /*
-        return function(dispatch, getState) {
-        const { dashboards, dashcards, cards } = getState().dashboard;
-        const dashboard: DashboardWithCards = dashboards[dashId];
-        const existingCards: Array<DashCard> = dashboard.ordered_cards.map(id => dashcards[id]).filter(dc => !dc.isRemoved);
-        const card: Card = cards[cardId];
-        const dashcard: DashCard = {
-            id: Math.random(), // temporary id
-            dashboard_id: dashId,
-            card_id: card.id,
-            card: card,
-            series: [],
-            ...getPositionForNewDashCard(existingCards),
-            parameter_mappings: [],
-            visualization_settings: {}
-        };
-        dispatch(createAction(ADD_CARD_TO_DASH)(dashcard));
-        dispatch(fetchCardData(card, dashcard, { reload: true, clear: true }));
+    const dashcardOverrides = {
+        card: virtualScalarCard,
+        visualization_settings: {
+            virtual_card: virtualScalarCard
+        }
     };
-         */
-        const { dashboards, dashcards, cards } = getState().dashboard;
-    }
-}
+
+    return addDashCardToDashboard({dashId: dashId, dashcardOverrides: dashcardOverrides})
+
+};
 
 
 export const addDashCardToDashboard = function({ dashId, dashcardOverrides }: { dashId: DashCardId, dashcardOverrides: { } }) {
@@ -669,14 +734,18 @@ export const navigateToNewCardFromDashboard = createThunkAction(
 // SCALAR reducers
 
 //should handle all the scalar specific api actions - will be exported for use in dashcards OR dashboard
+// TODO: funkeyfreak - Add momentifyTimestamps. This should allow the (scalar) card to be visible and filterable by the filter action...
 const scalars = handleActions({
-    [GET_SCALAR]: {next: (state, {payload}) => ({...state, [payload.id]: momentifyTimestamps(payload)})},
-    [GET_SCALAR_BY_KEY]: {next: (state, {payload}) => ({...state, [payload.id]: momentifyTimestamps(payload)})},
-    [CREATE_SCALAR]: {next: (state, {payload}) => ({...state, [payload.id]: momentifyTimestamps(payload)})},
-    [UPDATE_SCALAR]: {next: (state, {payload}) => ({...state, [payload.id]: momentifyTimestamps(payload)})},
-    [DELETE_SCALAR]: { next: (state, { payload }) => { state = { ...state }; delete state[payload.id]; return state; }}
+    [FETCH_SCALARS]: { next: (state, { payload }) => payload},
+    [FETCH_KEYDATE_SCALAR]: {next: (state, { payload }) => payload},
+    [GET_SCALAR]: {next: (state, {payload}) => payload},
+    [GET_SCALAR_BY_KEY]: {next: (state, {payload}) => payload /*momentifyTimestamps(payload)*/},
+    [SAVE_SCALAR]: {next: (state, {payload}) => payload /*momentifyTimestamps(payload)*/},
+    [UPDATE_SCALAR]: {next: (state, {payload}) => payload /*momentifyTimestamps(payload)*/},
+    [DELETE_SCALAR]: { next: (state, { payload }) => payload /*{ state = { ...state }; return state; }*/}
 
 },{});
+
 // END: SCALAR reducers
 
 const dashboardId = handleActions({
