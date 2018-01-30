@@ -115,8 +115,8 @@ export default class DashboardHeader extends Component {
         this.props.addTextDashCardToDashboard({ dashId: this.props.dashboard.id });
     }
 
-    onAddScalar() {
-        this.props.addScalarToDashboard({ dashId: this.props.dashboard.id });
+    onAddScalarBox() {
+        this.props.addScalarDashCardToDashboard({ dashId: this.props.dashboard.id });
     }
 
     onDoneEditing() {
@@ -261,14 +261,11 @@ export default class DashboardHeader extends Component {
                     </a>
                 </Tooltip>
             );
-
+            // Add scalar button
             buttons.push(
                 <Tooltip tooltip="Add or Fetch a Scalar">
-                    <a data-metabase-event="Dashboard;Add or Fetch Scalar" key="add-scalar" title="Add or fetch a scalar" className="cursor-pointer" onClick={this.onAddScalar()}>
+                    <a data-metabase-event="Dashboard;Add or Fetch Scalar" key="add-scalar" title="Add or fetch a scalar" className="text-brand-hover cursor-pointer" onClick={() => this.onAddScalarBox()}>
                         <Icon name="number" size={20}/>
-                        {
-                            //TODO: funkeyfreak - Add an actual icon named number
-                        }
                     </a>
                 </Tooltip>
             );

@@ -4,7 +4,7 @@ import Scalar      from "./visualizations/Scalar.jsx";
 import Progress    from "./visualizations/Progress.jsx";
 import Table       from "./visualizations/Table.jsx";
 import Text        from "./visualizations/Text.jsx";
-import Scalars     from "./visualizations/Scalar.jsx"
+import Scalars     from "./visualizations/Scalars.jsx"
 import LineChart   from "./visualizations/LineChart.jsx";
 import BarChart    from "./visualizations/BarChart.jsx";
 import RowChart    from "./visualizations/RowChart.jsx";
@@ -114,7 +114,7 @@ const extractRemappedColumns = (data) => {
 }
 
 registerVisualization(Scalar);
-registerVisualization(Scalars)
+registerVisualization(Scalars);
 registerVisualization(Progress);
 registerVisualization(Table);
 registerVisualization(Text);

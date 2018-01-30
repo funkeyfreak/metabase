@@ -10,15 +10,15 @@ import {
 } from "metabase/lib/redux";
 
 import { normalize } from "normalizr";
-import { DatabaseSchema, TableSchema, FieldSchema, SegmentSchema, MetricSchema, ScalarSchema } from "metabase/schema";
+import { DatabaseSchema, TableSchema, FieldSchema, SegmentSchema, MetricSchema } from "metabase/schema";
 
 import { getIn, assocIn } from "icepick";
 import _ from "underscore";
 
-import { MetabaseApi, MetricApi, SegmentApi, RevisionsApi, ScalarApi } from "metabase/services";
+import { MetabaseApi, MetricApi, SegmentApi, RevisionsApi } from "metabase/services";
 
 // Scalar Additions
-
+/*
 export const FETCH_SCALARS = "metabase/metadata/FETCH_SCALARS";
 export const fetchScalars  = createThunkAction(FETCH_SCALARS, (reload = false) => {
     return async (dispatch, getState) => {
@@ -104,7 +104,7 @@ export const fetchDateScalar   = fetchDateScalar(FETCH_DATE_SCALAR, (reload = fa
        });
    };
 });
-
+*/
 // End: Scalar Additions
 
 export const FETCH_METRICS = "metabase/metadata/FETCH_METRICS";

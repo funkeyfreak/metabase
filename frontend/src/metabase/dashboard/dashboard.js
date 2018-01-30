@@ -4,8 +4,10 @@ import { assoc, dissoc, assocIn, getIn, chain } from "icepick";
 import _ from "underscore";
 import moment from "moment";
 
-import {handleActions, combineReducers, createAction, momentifyTimestamps, createThunkAction, fetchData} from "metabase/lib/redux";
+import {handleActions, combineReducers, createAction, createThunkAction} from "metabase/lib/redux";
 import { normalize, schema } from "normalizr";
+
+import Stats from "metabase/visualizations/lib/stats";
 
 import MetabaseAnalytics from "metabase/lib/analytics";
 
@@ -94,16 +96,24 @@ function handleError (e, locale){
 
 export const GET_SCALAR    = "metabase/dashboard/GET_SCALAR";
 export const GET_SCALAR_BY_KEY =  "metabase/dashboard/GET_SCALAR_BY_KEY";
-export const GET_SCALARS = "metabase/dashboard/GET_SCALARS"
+export const GET_SCALARS = "metabase/dashboard/GET_SCALARS";
 export const SAVE_SCALAR = "metabase/dashboard/SAVE_SCALAR";
 export const UPDATE_SCALAR = "metabase/dashboard/UPDATE_SCALAR";
 export const DELETE_SCALAR = "metabase/dashboard/DELETE_SCALAR";
 export const FETCH_SCALARS = "metabase/dashboard/FETCH_SCALARS";
 export const FETCH_KEYDATE_SCALAR = "metabase/dashboard/FETCH_KEYDATE_SCALAR";
 
-export const getScalar     = createAction(GET_SCALAR, (id : number) => ScalarApi.get({ id }));
+export const getScalar     = createThunkAction(GET_SCALAR, (id) => {
+    return async (dispatch, getState) => {
+        const scalar = await ScalarApi.get({ id });
+        return scalar;
+    }});
 
-export const getScalars     = createAction(GET_SCALARS, ScalarApi.getAllScalars)
+export const getScalars     = createThunkAction(GET_SCALARS, () => {
+    return async (dispatch, getState) => {
+        const scalars = await ScalarApi.list();
+        return scalars
+    }});
 
 //export const createScalar  = createAction(SAVE_SCALAR, ScalarApi.create);
 //export const updateScalar  = createAction(UPDATE_SCALAR, ScalarApi.update);
@@ -123,19 +133,21 @@ export const deleteScalar = createThunkAction(DELETE_SCALAR, (id : number) => {
 export const fetchKeyDateScalar = createThunkAction(FETCH_KEYDATE_SCALAR, (key : string, date) => {
     return async (dispatch, getState) => {
         try{
-            let response;
+            //let response;
             if(!date.start || !date.end || date.start === null){
                 MetabaseAnalytics.trackEvent("Scalar", "FetchKeyDate")
-                response = await ScalarApi.listByKeyDate({scalarName: key, start: date.start, end: date.end});
+                const response = await ScalarApi.listByKeyDate({scalarName: key, start: date.start, end: date.end});
+                return response;
 
             } else {
                 MetabaseAnalytics.trackEvent("Scalar", "FetchKey")
-                response = await ScalarApi.listByKey({scalarName: key})
+                const response = await ScalarApi.listByKey({scalarName: key});
+                return response;
             }
-            if (response.length() === 0){
-                //TODO: funkeyfreak - logging
-            }
-            return response;
+            //if (response.length === 0){
+            //    //TODO: funkeyfreak - logging
+            //}
+            //return response;
         } catch (e){
             throw handleError(e, "fetchKeyDateScalar")
         }
@@ -147,9 +159,6 @@ export const fetchKeyDateScalar = createThunkAction(FETCH_KEYDATE_SCALAR, (key :
 export const saveScalar = createThunkAction(SAVE_SCALAR, (scalar) => {
     return async (dispatch, getState) => {
         try{
-            if(!(!scalar.name || !scalar.value || !scalar.date)){
-                return "Please enter in a scalar definition"
-            }
             //handle undefined description
             if(!scalar.description){
                 scalar = {...scalar, description: null}
@@ -158,16 +167,22 @@ export const saveScalar = createThunkAction(SAVE_SCALAR, (scalar) => {
             scalar.definition = {name: scalar.name, value: scalar.value, date: scalar.date};
 
             //are we updating a scalar or creating a new one
-            let response;
-            if(scalar.id != null) {
+            //let response;
+            //console.debug("here?");
+            if(scalar.id != null || scalar.id !== undefined) {
                 MetabaseAnalytics.trackEvent("Scalar", "Update");
-                response = await ScalarApi.update(scalar);
+                const response = await ScalarApi.update(scalar);
+                return response;
             }
             else {
                 MetabaseAnalytics.trackEvent("Scalar", "Create");
-                response = await ScalarApi.create(scalar);
+                const response = await ScalarApi.create(scalar);
+                return response;
             }
-            return response;
+            //if (scalar.id === null || scalar.id === undefined){
+            //    throw "WHY"
+            //}
+            //return response;
         } catch(e){
             throw handleError(e, "saveScalar");
         }
@@ -178,7 +193,7 @@ export const getKeyScalar = createThunkAction(GET_SCALAR_BY_KEY,
     (scalarName : string) => {
         return async (dispatch, getState) => {
             try {
-                let scalars = await ScalarApi.listByKey({scalarName: scalarName});
+                const scalars = await ScalarApi.listByKey({scalarName: scalarName});
                 //TODO: funkeyfreak - you could add the calculation logic here...
                 return (scalars);
             } catch (e){
@@ -190,19 +205,39 @@ export const getKeyScalar = createThunkAction(GET_SCALAR_BY_KEY,
 export const fetchScalars  = createThunkAction(FETCH_SCALARS, function(){
     return async (dispatch, getState) => {
         try {
-            let scalars = await ScalarApi.list();
-            if (scalars.length() === 0){
+            const scalars = await ScalarApi.list();
+            if (scalars.length === 0){
                 //TODO: funkeyfreak - add some logging here...
                 return scalars
             }
+            console.debug("The scalars");
+            console.debug(scalars);
             return scalars;
         } catch (e) {
+            console.debug(e);
             throw handleError(e, "fetchScalars");
         }
     };
 });
 
 // END SCALAR ACTIONS
+
+// STAT ACTIONS
+//export const GET_STATS    = "metabase/dashboard/GET_STATS";
+//export const GET_NUM_STAT = "";
+
+//NOTE: calcStatsObj takes a object named scalars. This does not have to be the Scalar object as denoted in Scalars.jsx (in visualizations). As long as a passed object has a param named value, or one passes an array of integers, the object will be calculated
+/*export const calcStatsObj = createThunkAction(GET_STATS, (scalars) => {
+    return async (dispatch, getState) => {
+        try{
+            const scalarObj = await (function(scalars){ return new Stats(scalars)});
+            return scalarObj.normal();
+        } catch (e) {
+            throw handleError(e, "calcStatsObj");
+        }
+    };
+});*/
+// END STAT ACTIONS
 
 function getDashboardType(id) {
     if (Utils.isUUID(id)) {
@@ -264,22 +299,6 @@ export const addCardToDashboard = function({ dashId, cardId }: { dashId: DashCar
     };
 }
 
-export const addScalarDashCardToDashboard = function( {dashId}: { dashId: DashCardId}) {
-    const virtualScalarCard = createCard();
-    virtualScalarCard.display = "scalars";
-    virtualScalarCard.archived = false;
-
-    const dashcardOverrides = {
-        card: virtualScalarCard,
-        visualization_settings: {
-            virtual_card: virtualScalarCard
-        }
-    };
-
-    return addDashCardToDashboard({dashId: dashId, dashcardOverrides: dashcardOverrides})
-
-};
-
 
 export const addDashCardToDashboard = function({ dashId, dashcardOverrides }: { dashId: DashCardId, dashcardOverrides: { } }) {
     return function(dispatch, getState) {
@@ -307,6 +326,7 @@ export const addTextDashCardToDashboard = function({ dashId }: { dashId: DashCar
     virtualTextCard.display = "text";
     virtualTextCard.archived = false;
 
+
     const dashcardOverrides = {
         card: virtualTextCard,
         visualization_settings: {
@@ -314,7 +334,25 @@ export const addTextDashCardToDashboard = function({ dashId }: { dashId: DashCar
         }
     };
     return addDashCardToDashboard({ dashId: dashId, dashcardOverrides: dashcardOverrides });
-}
+};
+
+export const addScalarDashCardToDashboard = function({ dashId }: { dashId: DashCardId}) {
+
+    const virtualScalarCard = createCard();
+    virtualScalarCard.display = "scalars";
+    virtualScalarCard.archived = false;
+
+    // prevent the addition of the data{} object
+    const dashcardOverrides = {
+        card: virtualScalarCard,
+        visualization_settings: {
+            virtual_card: virtualScalarCard
+        }
+    };
+
+    return addDashCardToDashboard({dashId: dashId, dashcardOverrides: dashcardOverrides})
+
+};
 
 export const saveDashboardAndCards = createThunkAction(SAVE_DASHBOARD_AND_CARDS, function() {
     return async function (dispatch, getState) {
@@ -735,16 +773,47 @@ export const navigateToNewCardFromDashboard = createThunkAction(
 
 //should handle all the scalar specific api actions - will be exported for use in dashcards OR dashboard
 // TODO: funkeyfreak - Add momentifyTimestamps. This should allow the (scalar) card to be visible and filterable by the filter action...
-const scalars = handleActions({
-    [FETCH_SCALARS]: { next: (state, { payload }) => payload},
-    [FETCH_KEYDATE_SCALAR]: {next: (state, { payload }) => payload},
-    [GET_SCALAR]: {next: (state, {payload}) => payload},
-    [GET_SCALAR_BY_KEY]: {next: (state, {payload}) => payload /*momentifyTimestamps(payload)*/},
-    [SAVE_SCALAR]: {next: (state, {payload}) => payload /*momentifyTimestamps(payload)*/},
-    [UPDATE_SCALAR]: {next: (state, {payload}) => payload /*momentifyTimestamps(payload)*/},
-    [DELETE_SCALAR]: { next: (state, { payload }) => payload /*{ state = { ...state }; return state; }*/}
+//TODO: funkeyfreak - move all scalar  logic to a new reducer set?
+const scalar = handleActions({
+    [GET_SCALAR]: { next: ( state, { payload }) => payload },
+    [SAVE_SCALAR]: { next: ( state, { payload }) => state ? state.filter(s=> s.id == payload.id) : payload},
+    //[UPDATE_SCALAR]: { next: ( state, { payload }) => payload },
+    [DELETE_SCALAR]: { next: ( state, { payload }) => null }
 
-},{});
+}, null);
+
+
+const scalars = handleActions({
+    [DELETE_SCALAR]: { next: (state, { payload }) => state ? state.filter(s => s.id != payload.id) : payload},
+    [SAVE_SCALAR]: {next: (state, { payload }) => state ? state.filter(s => s.name == payload.name).concat(payload).filter(s => s.id != payload.id) : payload },
+    //[UPDATE_SCALAR]: {next: (state, {payload}) => state.filter(s => s.id != payload.id && s.name == payload.name).concat(payload)},
+    [FETCH_KEYDATE_SCALAR]: {next: (state, { payload} ) => payload ? [...state, payload].map(s => s.name = payload[0].name) : state},
+
+}, null);
+
+/*const scalarCalc = handleActions({
+var uniqueArray = function(arrArg) {
+  return arrArg.filter(function(elem, pos,arr) {
+    return arr.indexOf(elem) == pos;
+  });
+};
+});*/
+
+const scalarNames = handleActions({
+    [FETCH_SCALARS]: { next: (state, { payload }) => payload ? payload.map(item => item.name).filter((value, index, self) => self.indexOf(value) === index) : state/*payload.filter(function(elem, pos,arr) {return arr.indexOf(elem) == pos;})*//*[...new Set(payload.map(item => item.name))]*/},
+    [GET_SCALARS]: { next: (state, { payload }) => payload ? payload.map(item => item.name).filter((value, index, self) => self.indexOf(value) === index) : state /*[...new Set(payload.map(item => item.name))]*/},
+}, null);
+
+const scalarSearch = handleActions({
+    [FETCH_SCALARS]: { next: (state, { payload }) => payload},
+    [GET_SCALARS]: { next: (state, { payload }) => payload},
+}, null);
+
+const scalarList = handleActions({
+    //[SAVE_SCALAR]: {next: (state, { payload }) => payload},
+    [SAVE_SCALAR]: {next: (state, { payload }) => state ? state.filter(s => s.name == payload.name).concat(payload).filter(s => s.id != payload.id ) : payload},
+    [GET_SCALAR_BY_KEY]: {next: (state, { payload} ) => payload },
+}, null);
 
 // END: SCALAR reducers
 
@@ -876,7 +945,11 @@ export default combineReducers({
     editingParameterId,
     revisions,
     dashcardData,
+    scalarNames,
     scalars,
+    scalar,
+    scalarList,
+    scalarSearch,
     slowCards,
     parameterValues
 });

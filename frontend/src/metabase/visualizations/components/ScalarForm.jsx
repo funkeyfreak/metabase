@@ -1,16 +1,21 @@
+/* @flow */
+
 import React, { Component } from "react";
 import { t } from 'c-3po';
 import moment from 'moment';
 
-import DatePicker from 'react-datepicker';
-import Select from 'react-select';
+import renderDatePicker from "./RenderDatePicker"
+
+///import Select from 'react-select';
 
 import Button from "metabase/components/Button";
 import FormField from "metabase/components/FormField";
 import Input from "metabase/components/Input";
 import Modal from "metabase/components/Modal";
+import DatePicker from 'react-datepicker'
 
-import { reduxForm } from "redux-form";
+import { reduxForm, Field} from "redux-form";
+
 
 import 'react-datepicker/dist/react-datepicker.css';
 
@@ -27,21 +32,21 @@ const formConfig = {
         }
         if (!values.value) {
             errors.value = t`Value is required`;
-        } else if (values.value === Number.MIN_SAFE_INTEGER || values.value === Number.MAX_SAFE_INTEGER){
+        } else if (isNaN(values.value)){
             errors.value = t`Invalid Value Entered`
         }
         if (!values.date) {
             errors.date = t`Date is required`;
-        } let date = moment(values.date);
-        if (!date.isValid()){
+        }
+        let date = moment(values.date);
+        if (!date.isValid() && moment(values.date, "MM/DD/YYYY").format("MM/DD/YYYY") !== values.date){
             errors.date = t`Invalid date, please enter in a valid date`
         }
         return errors;
     },
     initialValues: {
         name: "",
-        value: Number.MIN_SAFE_INTEGER,
-        date: moment.now(),
+        date: moment().format("MM/DD/YYYY"),
         description: ""
     }
 };
@@ -49,9 +54,10 @@ const formConfig = {
 export const getFormTitle = ({ id, name }) =>
     id.value ? name.value : t`New Scalar`
 
-export const getActionText = ({ id }) =>
-    id.value ? t`Update`: t`Create`
-
+export const getActionText = ({ id }) => {
+    console.log(id);
+    id.value ? t`Update` : t`Create`
+}
 
 export const ScalarEditorFormActions = ({ handleSubmit, invalid, onClose, fields}) =>
     <div>
@@ -63,7 +69,16 @@ export const ScalarEditorFormActions = ({ handleSubmit, invalid, onClose, fields
         </Button>
     </div>
 
-export class ScalarEditorForm extends Component {
+const ReduxFormDateRange = (props) => {
+    return (
+        <DatePicker
+            selected={props.input.value || null}
+            onChange={props.input.onChange}
+        />
+    )
+}
+
+export class ScalarForm extends Component {
     props: {
         fields: Object,
         onClose: Function,
@@ -84,7 +99,7 @@ export class ScalarEditorForm extends Component {
             <Modal
                 full={false}
                 inline={true}
-                //form
+                form
                 title={getFormTitle(fields)}
                 footer={<ScalarEditorFormActions {...this.props} />}
                 onClose={onClose}
@@ -108,7 +123,7 @@ export class ScalarEditorForm extends Component {
                     >
                         <textarea
                             className="Form-input full"
-                            placeholder={t`Some integer value`}
+                            placeholder={t`Your integer value!`}
                             {...fields.value}
                         />
                     </FormField>
@@ -117,26 +132,24 @@ export class ScalarEditorForm extends Component {
                         {...fields.description}
                     >
                         <textarea
+                            readOnly={!!fields.description}
                             className="Form-input full"
                             placeholder={t`It's optional but oh, so helpful`}
+
                             {...fields.description}
                         />
                     </FormField>
                     <FormField
                         displayName={t`Date`}
                         {...fields.date}
-                    >
-                        <DatePicker
-                            selected={this.state.startDate}
-                            placeholderText={moment()}
-                            showTimeSelect
-                            timeFormat="HH:mm"
-                            timeIntervals={15}
-                            dateFormat="LLL"
-                            todayButton={"Select Today"}
+                        >
+                        <textarea
+                            className="Form-input full"
+                            placeholder={moment().format("MM/DD/YYYY")}
                             {...fields.date}
                         />
                     </FormField>
+
                 </div>
             </Modal>
         )
@@ -144,10 +157,10 @@ export class ScalarEditorForm extends Component {
 }
 
 
-ScalarEditorForm.defaultProps = {
+ScalarForm.defaultProps = {
     isOpen: false
 };
 
 
-export default reduxForm(formConfig)(ScalarEditorForm)
+export default reduxForm(formConfig)(ScalarForm)
 
