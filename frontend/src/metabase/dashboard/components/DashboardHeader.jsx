@@ -24,6 +24,7 @@ import cx from "classnames";
 
 import type { LocationDescriptor, QueryParams, EntityType, EntityId } from "metabase/meta/types";
 import type { Card, CardId } from "metabase/meta/types/Card";
+
 import type { Parameter, ParameterId, ParameterOption } from "metabase/meta/types/Parameter";
 import type { DashboardWithCards, DashboardId, DashCardId } from "metabase/meta/types/Dashboard";
 import type { Revision, RevisionId } from "metabase/meta/types/Revision";
@@ -47,7 +48,8 @@ type Props = {
     parametersWidget:       React$Element<*>,
 
     addCardToDashboard:         ({ dashId: DashCardId, cardId: CardId }) => void,
-    addTextDashCardToDashboard: ({ dashId: DashCardId }) => void,
+    addTextDashCardToDashboard:    ({ dashId: DashCardId }) => void,
+    addScalarDashCardToDashboard:  ({ dashId: DashCardId }) => void,
     archiveDashboard:           (dashboardId: DashboardId) => void,
     fetchCards:                 (filterMode?: string) => void,
     fetchDashboard:             (dashboardId: DashboardId, queryParams: ?QueryParams) => void,
@@ -90,6 +92,7 @@ export default class DashboardHeader extends Component {
 
         addCardToDashboard: PropTypes.func.isRequired,
         addTextDashCardToDashboard: PropTypes.func.isRequired,
+        addScalarDashCardToDashboard: PropTypes.func.isRequired,
         archiveDashboard: PropTypes.func.isRequired,
         fetchCards: PropTypes.func.isRequired,
         fetchDashboard: PropTypes.func.isRequired,
@@ -110,6 +113,10 @@ export default class DashboardHeader extends Component {
 
     onAddTextBox() {
         this.props.addTextDashCardToDashboard({ dashId: this.props.dashboard.id });
+    }
+
+    onAddScalarBox() {
+        this.props.addScalarDashCardToDashboard({ dashId: this.props.dashboard.id });
     }
 
     onDoneEditing() {
@@ -251,6 +258,14 @@ export default class DashboardHeader extends Component {
                 <Tooltip tooltip="Add a text box">
                     <a data-metabase-event="Dashboard;Add Text Box" key="add-text" title="Add a text box" className="text-brand-hover cursor-pointer" onClick={() => this.onAddTextBox()}>
                         <Icon name="string" size={20} />
+                    </a>
+                </Tooltip>
+            );
+            // Add scalar button
+            buttons.push(
+                <Tooltip tooltip="Add or Fetch a Scalar">
+                    <a data-metabase-event="Dashboard;Add or Fetch Scalar" key="add-scalar" title="Add or fetch a scalar" className="text-brand-hover cursor-pointer" onClick={() => this.onAddScalarBox()}>
+                        <Icon name="number" size={20}/>
                     </a>
                 </Tooltip>
             );

@@ -5,6 +5,8 @@
             [medley.core :as m]
             [metabase.util :as u]
             [metabase.util.password :as password]
+            [clj-time
+             [coerce :as c]]
             [schema.core :as s]))
 
 ;; always validate all schemas in s/defn function declarations. See
@@ -103,6 +105,10 @@
   "Schema for a string that cannot be blank."
   (with-api-error-message (s/constrained s/Str (complement str/blank?) "Non-blank string")
     "value must be a non-blank string."))
+
+;;(def NonBlankInteger (s/constrained s/Num #(u/ignore-exceptions (Integer/parseInt %))))
+
+;;(def NonBlankDateString  "Schema representing a valid date-time string. Cannot be blank"  (with-api-error-message (s/constrained s/Str u/is-date? "A valid DateTime String")      "Must be able to be coerced into a date-time object"))
 
 ;; TODO - rename this to `PositiveInt`?
 (def IntGreaterThanZero

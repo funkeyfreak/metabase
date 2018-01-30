@@ -10,7 +10,7 @@ export const SegmentSchema = new schema.Entity('segments');
 export const MetricSchema = new schema.Entity('metrics');
 
 DatabaseSchema.define({
-    tables: [TableSchema]
+    tables: [TableSchema],
 });
 
 TableSchema.define({
