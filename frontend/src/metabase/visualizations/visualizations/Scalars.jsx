@@ -7,8 +7,8 @@ import cx from "classnames";
 
 import moment from 'moment';
 import Tooltip from "metabase/components/Tooltip";
-//import ScalarForm from "../components/ScalarForm";
-import ScalarFormRenderer from "../components/ScalarFormRender";
+import ScalarForm from "../components/ScalarForm";
+//import ScalarFormRenderer from "../components/ScalarFormRender";
 import Icon from "metabase/components/Icon.jsx";
 import Ellipsified from "metabase/components/Ellipsified.jsx";
 
@@ -258,7 +258,7 @@ export class Scalars extends Component {
 
     componentDidMount(){
         console.debug("Scalar obj");
-        console.debug(this.props.scalar);
+        //console.debug(this.props.scalar);
         //load those settings bois
         if (this.props.settings) {
             let id = this.props.settings["scalars.SCALAR"];
@@ -290,7 +290,7 @@ export class Scalars extends Component {
 
     componentWillReceiveProps(newProps: VisualizationProps) {
         console.debug("we be getting da props")
-        console.debug(newProps);
+        //console.debug(newProps);
         //if we are editing the dashboard
         if(!this.props.isEditing && newProps.isEditing) {
             //Do stuff
@@ -351,10 +351,10 @@ export class Scalars extends Component {
         let isSmall = gridSize && gridSize.width < 4;
 
         //get the scalar, if it has been loaded
-        let scalar = settings["scalars.reference"];
-        if (!scalar) {
-            console.debug("SHIT")
-            scalar = {
+        let s = settings["scalars.reference"];
+        if (!s) {
+            //console.debug("SHIT");
+            s = {
                 "id": null,
                 "name": "new_scalar",
                 "description": null,
@@ -362,9 +362,11 @@ export class Scalars extends Component {
                 "date": null
             }
         }
+        const scalar = s;
         //let scalar = settings["scalars.reference"];
 
-        let { id, name, value, description } = scalar;
+        const { id, name, value, description } = scalar;
+        //console.debug(scalar);
         //name = "sales";
         //value = "what nw?!";
         //description = "after the dddd";
@@ -372,22 +374,17 @@ export class Scalars extends Component {
             <div className={cx(className, styles.Scalar, styles[isSmall ? "small" : "large"])}>
                 {(isEditing) &&
                     <div>
-                        <ScalarFormRenderer
-                            isOpen={this.state.modalState.isOpen}
-                            //fields={Object.values(this.props.scalar)}
-                            //fields={this.settings && this.settings["scalars.reference"] ? Object.values(this.settings["scalars.reference"]) : ["", "", "", "", moment().format()]}
 
-                            onSubmit={this.saveupdatescalar.bind(this)}
-                            onClose={this.onModalOpenClick.bind(this)}
-                            //{...this.props}
-                        />
+
                         <ScalarActionButtons
                             actionButtons={actionButtons}
                             modalState={this.state.modalState}
                             //scalar={this.settings["scalars.reference"]}
                             //onEdit={this.onEdit.bind(this)}
+                            saveupdatescalar={this.saveupdatescalar.bind(this)}
                             onModalOpenClick={this.onModalOpenClick.bind(this)}
-                            scalar={this.props.scalar}
+                            //scalar={this.settings && this.settings["scalars.reference"] ? this.settings["scalars.reference"] : {}}//{this.props.scalar}
+                            scalar={id !== null ? scalar : {}}
                         />
                     </div>
                 }
@@ -447,8 +444,8 @@ export class Scalars extends Component {
 }
 
 //TODO: funkeyfreak - move to ../components/ScalarActopmButtons.jsx
-const ScalarActionButtons = ({ actionButtons, onModalOpenClick, modalState, scalar}) => (
-    <div className="Card-title">
+const ScalarActionButtons = ({ actionButtons, onModalOpenClick, saveupdatescalar, modalState, scalar}) => (
+    <div className="Card-title">{console.debug(modalState)}
         <div className="absolute top left p1 px2">
             <span className="DashCard-actions-persistent flex align-center" style={{ lineHeight: 1 }}>
                 <a
@@ -473,6 +470,21 @@ const ScalarActionButtons = ({ actionButtons, onModalOpenClick, modalState, scal
             </span>
         </div>
         <div className="absolute top right p1 px2">{actionButtons}</div>
+        <ScalarForm
+            isOpen={modalState.isOpen}
+            //fields={Object.values(this.props.scalar)}
+            //fields={this.props.settings && this.props.settings["scalars.reference"] ? Object.values(this.props.settings["scalars.reference"]).map(r => String(r)) : ["", "", "", "", moment().format()]}
+            onSubmit={saveupdatescalar}
+            onClose={onModalOpenClick}//{this.onModalOpenClick.bind(this)}
+            //initialState={this.props.settings && this.props.settings["scalars.reference"] ? Object.values(this.props.settings["scalars.reference"]).map(r => String(r)) : ["", "", "", "", moment().format()]}
+            //initialValues={this.props.settings && this.props.settings["scalars.reference"] ? Object.values(this.props.settings["scalars.reference"]).map(r => String(r)) : ["", "", "", "", moment().format()]}
+            //{...this.props}
+            //initialValues={this.settings && this.settings["scalars.reference"] && this.props.settings && this.props.settings["scalars.reference"] ? this.props.settings["scalars.reference"] : { date: moment().format("MM/DD/YYYY")}}
+            enableReinitialize={true}
+            //initialValues={settings["scalars.reference"] ? settings["scalars.reference"] : {}}
+            initialValues={scalar}
+
+        />
     </div>
 );
 

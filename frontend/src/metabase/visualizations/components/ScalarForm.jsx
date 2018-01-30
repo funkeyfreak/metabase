@@ -14,10 +14,14 @@ import Input from "metabase/components/Input";
 import Modal from "metabase/components/Modal";
 import DatePicker from 'react-datepicker'
 
-import { reduxForm, Field} from "redux-form";
+import { reduxForm } from "redux-form";
 
 
 import 'react-datepicker/dist/react-datepicker.css';
+
+/*function mapStateToProps(state, ownProps){
+
+}*/
 
 
 const formConfig = {
@@ -44,20 +48,22 @@ const formConfig = {
         }
         return errors;
     },
+    enableReinitialize: true,
     initialValues: {
-        name: "",
-        date: moment().format("MM/DD/YYYY"),
-        description: ""
+
+        /*id: this.initialState && this.initialState.id ?  this.initialState.id : "",
+        name: this.initialState && this.initialState.name ? this.initialState.name : "",
+        value: this.initialState && this.initialState.value ? this.initialState.value : null,
+        date: this.initialState && this.initialState.date ? this.initialState.date : moment().format("MM/DD/YYYY"),
+        description: this.initialState && this.initialState.description ? this.initialState.description : ""*/
     }
 };
 
 export const getFormTitle = ({ id, name }) =>
     id.value ? name.value : t`New Scalar`
 
-export const getActionText = ({ id }) => {
-    console.log(id);
+export const getActionText = ({ id }) =>
     id.value ? t`Update` : t`Create`
-}
 
 export const ScalarEditorFormActions = ({ handleSubmit, invalid, onClose, fields}) =>
     <div>
@@ -81,20 +87,26 @@ const ReduxFormDateRange = (props) => {
 export class ScalarForm extends Component {
     props: {
         fields: Object,
+        initialValues: Object,
         onClose: Function,
         invalid: Boolean,
         isOpen: boolean,
         handleSubmit: Function,
+        enableReinitialize: boolean
     };
 
     static defaultProps ={
         isOpen: false,
         className: "Modal",
-        backdropClassName: "Modal-backdrop"
+        backdropClassName: "Modal-backdrop",
     };
 
+    componentWillReceiveProps(newProps){
+        console.debug(newProps)
+    }
+
     render() {
-        const { fields, onClose } = this.props;
+        const { fields, onClose, initialValues } = this.props;
         return (
             <Modal
                 full={false}
@@ -114,6 +126,7 @@ export class ScalarForm extends Component {
                             className="Form-input full"
                             placeholder={t`My new fantastic number`}
                             autoFocus
+                            value={initialValues.name}
                             {...fields.name}
                         />
                     </FormField>
@@ -124,6 +137,7 @@ export class ScalarForm extends Component {
                         <textarea
                             className="Form-input full"
                             placeholder={t`Your integer value!`}
+                            value={initialValues.value}
                             {...fields.value}
                         />
                     </FormField>
@@ -132,7 +146,8 @@ export class ScalarForm extends Component {
                         {...fields.description}
                     >
                         <textarea
-                            readOnly={!!fields.description}
+                            readOnly={initialValues.description != ""}
+                            value={initialValues.description}
                             className="Form-input full"
                             placeholder={t`It's optional but oh, so helpful`}
 
@@ -146,6 +161,7 @@ export class ScalarForm extends Component {
                         <textarea
                             className="Form-input full"
                             placeholder={moment().format("MM/DD/YYYY")}
+                            value={initialValues.date}
                             {...fields.date}
                         />
                     </FormField>
@@ -158,7 +174,9 @@ export class ScalarForm extends Component {
 
 
 ScalarForm.defaultProps = {
-    isOpen: false
+    isOpen: false,
+    initialValues: {},
+    enableReinitialize: true
 };
 
 
