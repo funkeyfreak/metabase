@@ -125,9 +125,9 @@ export class Scalars extends Component {
     static minSize = { width: 3, height: 3 };
 
     //reference the rendered text
-    //_renderedText: ?HTMLElement; //TODO: funkeyfreak -  fixthis
-
-    static scalarStats = {};
+    //_renderedText: ?HTMLElement; //TODO: funkeyfreak -  fixthis, will allow capture of rendered scalar visualization
+    //TODO: from [dalinwilliams on 1/31/18 @ 10:49 AM]: Add scalar stat storage here
+    //static scalarStats = {};
 
     static Scalar = {
         id: 0,
@@ -135,15 +135,6 @@ export class Scalars extends Component {
         description: "",
         value: 0,
         date: ""
-    };
-
-    //default form state
-    static formState = {
-        newScalarName: "",
-        newScalarNameWarnLong: false,
-        newScalarValue: 0.0,
-        newScalarValueWarnNeg: false,
-        newScalarDate: moment() //set the new scalar date to default to now
     };
 
     //default display properties
