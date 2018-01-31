@@ -11,7 +11,8 @@ import * as Dashboard from "metabase/meta/Dashboard";
 
 import { getParameterTargetFieldId } from "metabase/meta/Parameter";
 
-import type { Scalar } from "metabase/visualizations/visualizations/Scalar"
+//TODO: from [dalinwilliams on 1/31/18 @ 10:35 AM]: Add selector s to manage args in state per scalar dashcard. This will help the constant refresh of state.dashbord.scalar*
+//import type { Scalar } from "metabase/visualizations/visualizations/Scalar"
 import type { CardId, Card } from "metabase/meta/types/Card";
 import type { DashCardId } from "metabase/meta/types/Dashboard";
 import type { ParameterId, Parameter, ParameterMapping, ParameterMappingUIOption } from "metabase/meta/types/Parameter";

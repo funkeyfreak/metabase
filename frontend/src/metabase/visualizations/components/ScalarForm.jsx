@@ -4,24 +4,19 @@ import React, { Component } from "react";
 import { t } from 'c-3po';
 import moment from 'moment';
 
-import renderDatePicker from "./RenderDatePicker"
-
-///import Select from 'react-select';
+//TODO: from [dalinwilliams on 1/31/18 @ 10:27 AM]: Add date picker and key selecor for available keys and better date-time selection
+//import renderDatePicker from "./RenderDatePicker"
+//import Select from 'react-select';
+//import DatePicker from 'react-datepicker'
 
 import Button from "metabase/components/Button";
 import FormField from "metabase/components/FormField";
 import Input from "metabase/components/Input";
 import Modal from "metabase/components/Modal";
-import DatePicker from 'react-datepicker'
 
 import { reduxForm } from "redux-form";
 
-
 import 'react-datepicker/dist/react-datepicker.css';
-
-/*function mapStateToProps(state, ownProps){
-
-}*/
 
 
 const formConfig = {
@@ -50,12 +45,9 @@ const formConfig = {
     },
     enableReinitialize: true,
     initialValues: {
-
-        /*id: this.initialState && this.initialState.id ?  this.initialState.id : "",
-        name: this.initialState && this.initialState.name ? this.initialState.name : "",
-        value: this.initialState && this.initialState.value ? this.initialState.value : null,
-        date: this.initialState && this.initialState.date ? this.initialState.date : moment().format("MM/DD/YYYY"),
-        description: this.initialState && this.initialState.description ? this.initialState.description : ""*/
+        name: "",
+        description: "",
+        date: moment().format("MM/DD/YYYY")
     }
 };
 
@@ -64,6 +56,7 @@ export const getFormTitle = ({ id, name }) =>
 
 export const getActionText = ({ id }) =>
     id.value ? t`Update` : t`Create`
+
 
 export const ScalarEditorFormActions = ({ handleSubmit, invalid, onClose, fields}) =>
     <div>
@@ -75,6 +68,7 @@ export const ScalarEditorFormActions = ({ handleSubmit, invalid, onClose, fields
         </Button>
     </div>
 
+/*TODO: from [dalinwilliams on 1/31/18 @ 10:28 AM]: Unused datepicker - for improvements
 const ReduxFormDateRange = (props) => {
     return (
         <DatePicker
@@ -83,16 +77,13 @@ const ReduxFormDateRange = (props) => {
         />
     )
 }
-
+*/
 export class ScalarForm extends Component {
     props: {
         fields: Object,
-        initialValues: Object,
         onClose: Function,
         invalid: Boolean,
-        isOpen: boolean,
         handleSubmit: Function,
-        enableReinitialize: boolean
     };
 
     static defaultProps ={
@@ -100,9 +91,9 @@ export class ScalarForm extends Component {
         className: "Modal",
         backdropClassName: "Modal-backdrop",
     };
-
-    componentWillReceiveProps(newProps){
-        console.debug(newProps)
+    constructor(props){
+        super(props);
+        console.debug(props);
     }
 
     render() {
@@ -123,6 +114,7 @@ export class ScalarForm extends Component {
                         {...fields.name}
                     >
                         <Input
+                            readOnly={initialValues.name != ""}
                             className="Form-input full"
                             placeholder={t`My new fantastic number`}
                             autoFocus

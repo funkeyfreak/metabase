@@ -1,21 +1,17 @@
 /*@flow*/
 import React, { Component } from "react";
 import { connect } from 'react-redux';
-import ReactMarkdown from "react-markdown";
 import cx from "classnames";
 
 
 import moment from 'moment';
 import Tooltip from "metabase/components/Tooltip";
 import ScalarForm from "../components/ScalarForm";
-//import ScalarFormRenderer from "../components/ScalarFormRender";
 import Icon from "metabase/components/Icon.jsx";
 import Ellipsified from "metabase/components/Ellipsified.jsx";
 
 import 'react-datepicker/dist/react-datepicker.css';
 import styles from "./Scalars.css";
-
-//import dashboard from "metabase/dashboard/dashboard"
 import { getKeyScalar, getScalar, fetchScalars, saveScalar, fetchKeyDateScalar, deleteScalar, getScalars }  from "metabase/dashboard/dashboard"
 
 import Stats from "../lib/stats"
@@ -58,11 +54,6 @@ export type DisProps = {
     maths:   string
 };
 
-/*export type ScalarSettings = {
-    SCALAR: number,
-    DisplayProps: DisProps
-};*/
-
 export type Scalar = {
     id: number,
     name: string,
@@ -72,20 +63,17 @@ export type Scalar = {
 };
 
 type State = {
-    scalarDiff: number,
-    scalarBase: number,
+    scalarId: number,
+    scalarKey: string,
     text: string,
-    newScalarName: string,
-    //uniqueKeys: [string],
     modalState: {
         isOpen: boolean,
-        save: boolean
+        save: boolean,
     },
     reference: Scalar
 };
 
-//const ArrOfScalar = [Scalar];
-
+/*NOTE Scratch space
 const VisType = new Map();
 VisType.set("%%",{}); // show percentages
 VisType.set("##", {}); // show a number
@@ -103,6 +91,7 @@ Maths.set("selected"); // the selected scalar
 const ConstDirrArr = new Map();
 ConstDirrArr.set("up","&uparrow");
 ConstDirrArr.set("down", "&downarrow");
+*/
 
 export class Scalars extends Component {
     props: VisualizationProps;
@@ -113,22 +102,14 @@ export class Scalars extends Component {
         super(props);
 
         this.state = {
+            scalarId: 0,
             scalarKey: "",
-            scalarDiff: 0,
-            scalarBase: 0,
             text: "",
             uniqueKeys: [],
             modalState: {
                 isOpen: false,
                 save: false
             },
-            /*scalar: {
-                id: 0,
-                name: "",
-                description: "",
-                value: 0,
-                date: ""
-            }*/
         };
     }
 
@@ -146,14 +127,7 @@ export class Scalars extends Component {
     //reference the rendered text
     //_renderedText: ?HTMLElement; //TODO: funkeyfreak -  fixthis
 
-
-
     static scalarStats = {};
-    //default modal state
-    static modalState = {
-        isOpen: false,
-        save: false
-    };
 
     static Scalar = {
         id: 0,
@@ -196,14 +170,13 @@ export class Scalars extends Component {
             value: false
         },
         "scalars.reference": {
-            /*"id": null,
+            /*"id": null, NOTE - one does not need to define any values - they will be satasified by VisualizationProps.settings. This makes this.settings available in the renderer
             "name": null,
             "description": null,
             "value": null,
             "date": ""*/
         },
-        //I could add blank objects....
-        "scalars.DisplayProperties": { //TODO: funkeyfreak - rename to scalar.DisplayProperties
+        "scalars.DisplayProperties": {
             rangeType: {
                 date: null,
                 count: 0
@@ -246,51 +219,51 @@ export class Scalars extends Component {
 
     //-------------- REACT NATIVE FUNCTIONS
 
-
     componentWillMount(){
-        console.debug("Mounting Scalar...");
         //load all the scalars
         this.props.getScalars();
         if(!this.props.settings){
+            //TODO - funkeyfreak - Eventually get props/set props her
             //this.props.onUpdateVisualizationSettings( "scalars.reference": {});
+            //We can set state concerning the validity of an id here....
+            //this.setState({});
         }
+
     }
 
     componentDidMount(){
-        console.debug("Scalar obj");
-        //console.debug(this.props.scalar);
-        //load those settings bois
         if (this.props.settings) {
             let id = this.props.settings["scalars.SCALAR"];
             let scalar = this.props.settings["scalars.reference"];
+            // use dispProps to store display properties
             let dispProps = this.props.settings["scalars.DisplayProperties"];
 
             //fetch what needs to be fetched
             if (scalar && scalar != null && id && id != null) {
-                let {ids, key} = scalar;
-                if (id == ids) { // double to allow for string comp
-                    this.props.getScalar(id);
-                    if (dispProps.rangeType.date) {
+                let {ids } = scalar;
+                // double to allow for string comp
+                if (id == ids) {
+                    //TODO: funkeyfreak - programmatic filtering from the back-end api - moves logic forward
+                    //this.props.getScalar(id);
+                    /*if (dispProps.rangeType.date) {
                         //fetchKeyDateScalar already accepts a object with start and end!
-                        this.props.fetchKeyDateScalar(key, dispProps.rangeType.date)
+                        //TODO: funkeyfreak - fetch scalars and filter by date
+                        //this.props.fetchKeyDateScalar(key, dispProps.rangeType.date)
                     } else if (dispProps.rangeType.count) {
-                        //TODO: funekyfreak - this would be awesome to have
-                    }
+                        //TODO: funkeyfreak - this would be awesome to have
+                    }*/
                 } else {
-                    console.debug("Keys given do not match, id: " + id + " ids: " + ids);
+                    console.debug("Ids given do not match, id: " + id + " ids: " + ids);
                 }
             }
         }
     }
 
     componentWillUpdate(){
-        console.debug("here - should fire off after any state change and prop change");
-        //console.debug(this.state);
+        //TODO: funkeyfreak - add state handler of current props?
     }
 
     componentWillReceiveProps(newProps: VisualizationProps) {
-        console.debug("we be getting da props")
-        //console.debug(newProps);
         //if we are editing the dashboard
         if(!this.props.isEditing && newProps.isEditing) {
             //Do stuff
@@ -298,29 +271,30 @@ export class Scalars extends Component {
 
         //update the visuals for rendering
         if (!this.props.isEditing && !newProps.isEditing){
-            //this.updateCardState(this.props.settings);
+
         }
+
         if(newProps.scalar != null){
+            //TODO: funkeyfreak - check loaded sclarList - maybe the mounted list already matches the scalar key
             //this bit is a bit greedy...
             let scalar = newProps.scalar;
-            let { id, value } = scalar;
+            let { id } = scalar;
             let scalars = newProps.scalarList;
-            if( scalars != null) {
-                //always update the stats!
-                //const stats = new Stats(scalars);
-                //this.settings["stats"] = stats.normal(value);
-                //this.scalarStats = stats;
+            if( scalars != null && scalars.length > 1) {
+                //TODO: Add stats work here?
             }
             //update the settings, if they are dirty
             if(newProps.settings.dirty){
-                console.debug("EWW, settings are dirty - lets change that");
-                this.props.onUpdateVisualizationSettings({"dirty": false, "scalars.SCALAR": id, "scalars.reference": scalar});
+                this.props.onUpdateVisualizationSettings({"dirty": false,
+                    "scalars.SCALAR": id,
+                    "scalars.reference": scalar});
             }
+            this.setState({
+                reference: newProps.scalar,
+                scalarId: newProps.scalar.id,
+                scalarKey: newProps.scalar.name,
+            });
         }
-
-        this.setState({
-
-        });
     }
     componentDidUpdate(){
         //TODO: funkeyfreak - this is where we can refresh the scalar via the scalar api after user entry via a form
@@ -330,21 +304,24 @@ export class Scalars extends Component {
 
     //---------------------------ACTIONS
 
-
-
     onScalarClicked (){
-
+        //TODO: funkeyfreak - launch modal from click of the actual modal
     }
 
     onModalOpenClick(){
         let m = this.state.modalState;
+        //TODO: funkeyfreak - if the modal is about to be opened, load the selected scalar into state
+        /*if(!m.isOpen && this.props.settings && this.props.settings["scalars.SCALAR"]){
+            this.props.getScalar(this.props.settings["scalars.SCALAR"]);
+        }*/
         m.isOpen = !m.isOpen;
         this.setState({
             modalState: m
         })
     }
 
-    //---------------------------GET RENDERED SONNNN
+    //---------------------------GET RENDERED
+
     render() {
         let { className, actionButtons, gridSize, settings, isEditing} = this.props;
         //var for detecting div size
@@ -353,7 +330,6 @@ export class Scalars extends Component {
         //get the scalar, if it has been loaded
         let s = settings["scalars.reference"];
         if (!s) {
-            //console.debug("SHIT");
             s = {
                 "id": null,
                 "name": "new_scalar",
@@ -363,27 +339,31 @@ export class Scalars extends Component {
             }
         }
         const scalar = s;
-        //let scalar = settings["scalars.reference"];
 
         const { id, name, value, description } = scalar;
-        //console.debug(scalar);
-        //name = "sales";
-        //value = "what nw?!";
-        //description = "after the dddd";
+
+        //force rendering of individual modals per scalar
+        const scalarModal = this.state.modalState.isOpen ?
+            (<ScalarForm
+                isOpen={this.state.modalState.isOpen}
+                onSubmit={this.saveupdatescalar.bind(this)}
+                onClose={this.onModalOpenClick.bind(this)}
+                initialValues={id ? scalar : {}}
+            />)
+            :
+            null;
+
+
         return (
             <div className={cx(className, styles.Scalar, styles[isSmall ? "small" : "large"])}>
                 {(isEditing) &&
                     <div>
-
-
+                        { scalarModal }
                         <ScalarActionButtons
                             actionButtons={actionButtons}
                             modalState={this.state.modalState}
-                            //scalar={this.settings["scalars.reference"]}
-                            //onEdit={this.onEdit.bind(this)}
                             saveupdatescalar={this.saveupdatescalar.bind(this)}
                             onModalOpenClick={this.onModalOpenClick.bind(this)}
-                            //scalar={this.settings && this.settings["scalars.reference"] ? this.settings["scalars.reference"] : {}}//{this.props.scalar}
                             scalar={id !== null ? scalar : {}}
                         />
                     </div>
@@ -399,20 +379,17 @@ export class Scalars extends Component {
                 >
                       <span
                           onClick={() => {}
+                              //TODO: funkeyfreak - handle the opening of a modal on the click of the scalar object
                               //this._scalars ? this.onModalOpenClick(scalar): (() => {/*do nothing*/})
                           }
+
+
                           //ref={scalars => this._scalars = scalars}
                       >
                          {value ? value : "0"}
                       </span>
                 </Ellipsified>
 
-                <ReactMarkdown
-                    //className={cx("full flex-full flex flex-column text-card-markdown", styles["text-card-markdown"])}
-                    style={{ display: "none"}}//hide md renderer
-                    //source={settings.text}
-                    //ref={renderedMD => this._renderedText = renderedMD}
-                />
                 <div className={styles.Title + " flex align-center relative"}>
                     <Ellipsified
                         tooltip={name ? name : ""}>
@@ -445,7 +422,7 @@ export class Scalars extends Component {
 
 //TODO: funkeyfreak - move to ../components/ScalarActopmButtons.jsx
 const ScalarActionButtons = ({ actionButtons, onModalOpenClick, saveupdatescalar, modalState, scalar}) => (
-    <div className="Card-title">{console.debug(modalState)}
+    <div className="Card-title">
         <div className="absolute top left p1 px2">
             <span className="DashCard-actions-persistent flex align-center" style={{ lineHeight: 1 }}>
                 <a
@@ -470,21 +447,6 @@ const ScalarActionButtons = ({ actionButtons, onModalOpenClick, saveupdatescalar
             </span>
         </div>
         <div className="absolute top right p1 px2">{actionButtons}</div>
-        <ScalarForm
-            isOpen={modalState.isOpen}
-            //fields={Object.values(this.props.scalar)}
-            //fields={this.props.settings && this.props.settings["scalars.reference"] ? Object.values(this.props.settings["scalars.reference"]).map(r => String(r)) : ["", "", "", "", moment().format()]}
-            onSubmit={saveupdatescalar}
-            onClose={onModalOpenClick}//{this.onModalOpenClick.bind(this)}
-            //initialState={this.props.settings && this.props.settings["scalars.reference"] ? Object.values(this.props.settings["scalars.reference"]).map(r => String(r)) : ["", "", "", "", moment().format()]}
-            //initialValues={this.props.settings && this.props.settings["scalars.reference"] ? Object.values(this.props.settings["scalars.reference"]).map(r => String(r)) : ["", "", "", "", moment().format()]}
-            //{...this.props}
-            //initialValues={this.settings && this.settings["scalars.reference"] && this.props.settings && this.props.settings["scalars.reference"] ? this.props.settings["scalars.reference"] : { date: moment().format("MM/DD/YYYY")}}
-            enableReinitialize={true}
-            //initialValues={settings["scalars.reference"] ? settings["scalars.reference"] : {}}
-            initialValues={scalar}
-
-        />
     </div>
 );
 
