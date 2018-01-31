@@ -11,6 +11,8 @@ import * as Dashboard from "metabase/meta/Dashboard";
 
 import { getParameterTargetFieldId } from "metabase/meta/Parameter";
 
+//TODO: from [dalinwilliams on 1/31/18 @ 10:35 AM]: Add selector s to manage args in state per scalar dashcard. This will help the constant refresh of state.dashbord.scalar*
+//import type { Scalar } from "metabase/visualizations/visualizations/Scalar"
 import type { CardId, Card } from "metabase/meta/types/Card";
 import type { DashCardId } from "metabase/meta/types/Dashboard";
 import type { ParameterId, Parameter, ParameterMapping, ParameterMappingUIOption } from "metabase/meta/types/Parameter";
@@ -40,6 +42,7 @@ export const getSlowCards         = state => state.dashboard.slowCards;
 export const getCardIdList        = state => state.dashboard.cardList;
 export const getRevisions         = state => state.dashboard.revisions;
 export const getParameterValues   = state => state.dashboard.parameterValues;
+export const getAllScalars        = state => state.dashboard.scalars;
 
 export const getDashboard = createSelector(
     [getDashboardId, getDashboards],

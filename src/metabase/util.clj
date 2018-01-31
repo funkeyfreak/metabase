@@ -14,10 +14,11 @@
             [clojure.math.numeric-tower :as math]
             [clojure.tools.logging :as log]
             [clojure.tools.namespace.find :as ns-find]
-            colorize.core ; this needs to be loaded for `format-color`
+            colorize.core                                   ; this needs to be loaded for `format-color`
             [metabase.config :as config]
             [puppetlabs.i18n.core :as i18n :refer [trs]]
-            [ring.util.codec :as codec])
+            [ring.util.codec :as codec]
+            [clj-time.coerce :as c])
   (:import clojure.lang.Keyword
            [java.net InetAddress InetSocketAddress Socket]
            [java.sql SQLException Timestamp]
@@ -364,6 +365,11 @@
   (boolean (when (string? s)
              (re-matches #"[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?"
                          (s/lower-case s)))))
+
+(defn is-date?
+  "Is STRING a valid date?"
+  ^Boolean [^String s]
+  (boolean (some? (c/from-string s))))
 
 ;; TODO - rename to `url?`
 (defn is-url?

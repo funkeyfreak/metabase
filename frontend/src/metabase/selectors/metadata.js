@@ -55,6 +55,7 @@ export const getShallowFields = getNormalizedFields;
 export const getShallowMetrics = getNormalizedMetrics;
 export const getShallowSegments = getNormalizedSegments;
 
+
 // fully connected graph of all databases, tables, fields, segments, and metrics
 export const getMetadata = createSelector(
     [
@@ -62,7 +63,8 @@ export const getMetadata = createSelector(
         getNormalizedTables,
         getNormalizedFields,
         getNormalizedSegments,
-        getNormalizedMetrics
+        getNormalizedMetrics,
+
     ],
     (databases, tables, fields, segments, metrics): Metadata => {
         const meta = new Metadata();
@@ -71,7 +73,6 @@ export const getMetadata = createSelector(
         meta.fields    = copyObjects(meta, fields, Field)
         meta.segments  = copyObjects(meta, segments, Segment)
         meta.metrics   = copyObjects(meta, metrics, Metric)
-        // meta.loaded    = getLoadedStatuses(requestStates)
 
         hydrateList(meta.databases, "tables", meta.tables);
 
