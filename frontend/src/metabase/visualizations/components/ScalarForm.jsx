@@ -97,7 +97,7 @@ export class ScalarForm extends Component {
     }
 
     render() {
-        const { fields, onClose, initialValues } = this.props;
+        const { fields, onClose } = this.props;
         return (
             <Modal
                 full={false}
@@ -114,11 +114,10 @@ export class ScalarForm extends Component {
                         {...fields.name}
                     >
                         <Input
-                            readOnly={initialValues.name != ""}
+                            readOnly={!!fields.name.initialValue}
                             className="Form-input full"
                             placeholder={t`My new fantastic number`}
                             autoFocus
-                            value={initialValues.name}
                             {...fields.name}
                         />
                     </FormField>
@@ -129,7 +128,6 @@ export class ScalarForm extends Component {
                         <textarea
                             className="Form-input full"
                             placeholder={t`Your integer value!`}
-                            value={initialValues.value}
                             {...fields.value}
                         />
                     </FormField>
@@ -138,8 +136,7 @@ export class ScalarForm extends Component {
                         {...fields.description}
                     >
                         <textarea
-                            readOnly={initialValues.description != ""}
-                            value={initialValues.description}
+                            readOnly={!!fields.description.initialValue}
                             className="Form-input full"
                             placeholder={t`It's optional but oh, so helpful`}
 
@@ -153,7 +150,6 @@ export class ScalarForm extends Component {
                         <textarea
                             className="Form-input full"
                             placeholder={moment().format("MM/DD/YYYY")}
-                            value={initialValues.date}
                             {...fields.date}
                         />
                     </FormField>
