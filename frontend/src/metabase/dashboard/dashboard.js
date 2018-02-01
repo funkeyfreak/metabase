@@ -103,11 +103,13 @@ export const DELETE_SCALAR = "metabase/dashboard/DELETE_SCALAR";
 export const FETCH_SCALARS = "metabase/dashboard/FETCH_SCALARS";
 export const FETCH_KEYDATE_SCALAR = "metabase/dashboard/FETCH_KEYDATE_SCALAR";
 
-export const getScalar     = createThunkAction(GET_SCALAR, (id) => {
+export const getScalar     = createThunkAction(GET_SCALAR, ( id ) => {
     return async (dispatch, getState) => {
-        const scalar = await ScalarApi.get({ id });
+        const scalar = await ScalarApi.get({ scalarId: id });
         return scalar;
     }});
+
+export const getScalarA = createAction(GET_SCALAR, (id) => {return ScalarApi.get({scalarId: id })});
 
 export const getScalars     = createThunkAction(GET_SCALARS, () => {
     return async (dispatch, getState) => {
@@ -171,6 +173,8 @@ export const saveScalar = createThunkAction(SAVE_SCALAR, (scalar) => {
             //console.debug("here?");
             if(scalar.id != null || scalar.id !== undefined) {
                 MetabaseAnalytics.trackEvent("Scalar", "Update");
+                let msg = scalar.revision_message;
+                scalar.revision_message = msg ? msg : String("Updated Scalar " + scalar.id);
                 const response = await ScalarApi.update(scalar);
                 return response;
             }
@@ -447,6 +451,9 @@ export const fetchDashboardCardData = createThunkAction(FETCH_DASHBOARD_CARD_DAT
     async (dispatch, getState) => {
         const dashboard = getDashboardComplete(getState());
         if (dashboard) {
+            // OPTIMIZE: from [dalinwilliams on 1/31/18 @ 4:24 PM]: Make this less greedy
+            // we load all the scalars on every dashboard
+            dispatch(getScalars());
             for (const dashcard of dashboard.ordered_cards) {
                 // we skip over virtual cards, i.e. dashcards that do not have backing cards in the backend
                 if (_.isObject(dashcard.visualization_settings.virtual_card)) { continue }
@@ -776,17 +783,17 @@ export const navigateToNewCardFromDashboard = createThunkAction(
 //TODO: funkeyfreak - move all scalar  logic to a new reducer set?
 const scalar = handleActions({
     [GET_SCALAR]: { next: ( state, { payload }) => payload },
-    [SAVE_SCALAR]: { next: ( state, { payload }) => state ? state.filter(s=> s.id == payload.id) : payload},
-    //[UPDATE_SCALAR]: { next: ( state, { payload }) => payload },
+    [SAVE_SCALAR]: { next: ( state, { payload }) => payload },
     [DELETE_SCALAR]: { next: ( state, { payload }) => null }
 
 }, null);
 
 
 const scalars = handleActions({
-    [DELETE_SCALAR]: { next: (state, { payload }) => state ? state.filter(s => s.id != payload.id) : payload},
-    [SAVE_SCALAR]: {next: (state, { payload }) => state ? state.filter(s => s.name == payload.name).concat(payload).filter(s => s.id != payload.id) : payload },
-    //[UPDATE_SCALAR]: {next: (state, {payload}) => state.filter(s => s.id != payload.id && s.name == payload.name).concat(payload)},
+    [GET_SCALARS] : { next: (state, { payload }) => payload ? payload : state},
+    [GET_SCALAR]: { next: ( state, { payload }) => payload ? ( state ? state.filter( s => s.id != payload.id).concat(payload) : [payload]) : state },
+    [DELETE_SCALAR]: { next: (state, { payload }) => state ? state.filter(s => s.id != payload.id) : []},
+    [SAVE_SCALAR]: {next: (state, { payload }) => payload ? ( state ? state.filter( s => s.id != payload.id).concat(payload) : [payload]) : state},
     [FETCH_KEYDATE_SCALAR]: {next: (state, { payload} ) => payload ? [...state, payload].map(s => s.name = payload[0].name) : state},
 
 }, null);
@@ -799,9 +806,12 @@ var uniqueArray = function(arrArg) {
 };
 });*/
 
+//FIXME: from [dalinwilliams on 1/31/18 @ 11:49 AM] Move all of this filtering logic into a selector
 const scalarNames = handleActions({
-    [FETCH_SCALARS]: { next: (state, { payload }) => payload ? payload.map(item => item.name).filter((value, index, self) => self.indexOf(value) === index) : state/*payload.filter(function(elem, pos,arr) {return arr.indexOf(elem) == pos;})*//*[...new Set(payload.map(item => item.name))]*/},
-    [GET_SCALARS]: { next: (state, { payload }) => payload ? payload.map(item => item.name).filter((value, index, self) => self.indexOf(value) === index) : state /*[...new Set(payload.map(item => item.name))]*/},
+    [GET_SCALAR]: { next: (state, { payload }) => payload ? (state ? state.filter(s => s != payload.name).concat(payload.name) : [payload.name]) : state},
+    [SAVE_SCALAR]: { next: (state, { payload }) => payload ? (state ? state.filter(s => s != payload.name).concat(payload.name) : [payload.name]) : state},
+    [FETCH_SCALARS]: { next: (state, { payload }) => payload ? payload.map(item => item.name).filter((value, index, self) => self.indexOf(value) === index) : state},
+    [GET_SCALARS]: { next: (state, { payload }) => payload ? payload.map(item => item.name).filter((value, index, self) => self.indexOf(value) === index) : state},
 }, null);
 
 const scalarSearch = handleActions({
@@ -810,8 +820,7 @@ const scalarSearch = handleActions({
 }, null);
 
 const scalarList = handleActions({
-    //[SAVE_SCALAR]: {next: (state, { payload }) => payload},
-    [SAVE_SCALAR]: {next: (state, { payload }) => state ? state.filter(s => s.name == payload.name).concat(payload).filter(s => s.id != payload.id ) : payload},
+    [SAVE_SCALAR]: {next: (state, { payload }) => state ? state.filter(s => s.id != payload.id).concat(payload) : [payload]},
     [GET_SCALAR_BY_KEY]: {next: (state, { payload} ) => payload },
 }, null);
 

@@ -12,7 +12,8 @@ import Ellipsified from "metabase/components/Ellipsified.jsx";
 
 import 'react-datepicker/dist/react-datepicker.css';
 import styles from "./Scalars.css";
-import { getKeyScalar, getScalar, fetchScalars, saveScalar, fetchKeyDateScalar, deleteScalar, getScalars }  from "metabase/dashboard/dashboard"
+import { getKeyScalar, getScalar, fetchScalars, saveScalar, fetchKeyDateScalar, deleteScalar, getScalars, getScalarA }  from "metabase/dashboard/dashboard"
+import { isNewScalarReady, getScalarList } from "metabase/dashboard/selectors";
 
 import Stats from "../lib/stats"
 
@@ -26,6 +27,8 @@ const mapStateToProps = state => ({
     scalarList: state.dashboard.scalarList,
     scalarSearch: state.dashboard.scalarSearch,
     scalarNames: state.dashboard.scalarNames,
+    isReadyForSave: isNewScalarReady(state),
+    //scalarNameList: getScalarList(state),
 });
 
 const mapDispatchToProps = {
@@ -36,6 +39,7 @@ const mapDispatchToProps = {
     fetchKeyDateScalar,
     deleteScalar,
     getScalars,
+    getScalarA,
 };
 
 const HEADER_ICON_SIZE = 16;
@@ -149,7 +153,7 @@ export class Scalars extends Component {
 
     //Settings structure
     static settings = {
-        "scalars.SCALAR": { //TODO: funkeyfreak - rename to scalar.SCALAR
+        "scalars.SCALAR": {
             value: 0,
             default: 0
         },
@@ -212,10 +216,14 @@ export class Scalars extends Component {
 
     componentWillMount(){
         //load all the scalars
-        this.props.getScalars();
-        if(!this.props.settings){
+        //this.props.getScalars();
+        if(this.props.settings){
             //TODO - funkeyfreak - Eventually get props/set props her
-            //this.props.onUpdateVisualizationSettings( "scalars.reference": {});
+            if(this.props.settings["scalars.reference"]){
+                //Add working scalars - catching any perhaps uncaught scalars
+                this.props.getScalar(this.props.settings["scalars.reference"].id);
+                //can do maths -> this.props.getKeyScalar(this.props.settings["scalars.reference"].name); will return all scalars that match name
+            }
             //We can set state concerning the validity of an id here....
             //this.setState({});
         }
@@ -224,18 +232,17 @@ export class Scalars extends Component {
 
     componentDidMount(){
         if (this.props.settings) {
-            let id = this.props.settings["scalars.SCALAR"];
+            let ids = this.props.settings["scalars.SCALAR"];
             let scalar = this.props.settings["scalars.reference"];
             // use dispProps to store display properties
             let dispProps = this.props.settings["scalars.DisplayProperties"];
 
             //fetch what needs to be fetched
-            if (scalar && scalar != null && id && id != null) {
-                let {ids } = scalar;
+            if (scalar && scalar != null && ids && ids != null) {
+                let { id } = scalar;
                 // double to allow for string comp
                 if (id == ids) {
                     //TODO: funkeyfreak - programmatic filtering from the back-end api - moves logic forward
-                    //this.props.getScalar(id);
                     /*if (dispProps.rangeType.date) {
                         //fetchKeyDateScalar already accepts a object with start and end!
                         //TODO: funkeyfreak - fetch scalars and filter by date
@@ -264,7 +271,7 @@ export class Scalars extends Component {
         if (!this.props.isEditing && !newProps.isEditing){
 
         }
-
+        //if we have a stored scalar FIXME: from [dalinwilliams on 1/31/18 @ 4:14 PM] Replace with selector
         if(newProps.scalar != null){
             //TODO: funkeyfreak - check loaded sclarList - maybe the mounted list already matches the scalar key
             //this bit is a bit greedy...
@@ -274,8 +281,9 @@ export class Scalars extends Component {
             if( scalars != null && scalars.length > 1) {
                 //TODO: Add stats work here?
             }
-            //update the settings, if they are dirty
-            if(newProps.settings.dirty){
+
+            //update the settings, if they are dirty AND we have a new scalar (since our new scalar is loaded async
+            if(newProps.settings.dirty && newProps.scalar !== this.props.scalar){
                 this.props.onUpdateVisualizationSettings({"dirty": false,
                     "scalars.SCALAR": id,
                     "scalars.reference": scalar});
@@ -302,9 +310,10 @@ export class Scalars extends Component {
     onModalOpenClick(){
         let m = this.state.modalState;
         //TODO: funkeyfreak - if the modal is about to be opened, load the selected scalar into state
-        /*if(!m.isOpen && this.props.settings && this.props.settings["scalars.SCALAR"]){
-            this.props.getScalar(this.props.settings["scalars.SCALAR"]);
-        }*/
+        if(!m.isOpen && this.props.settings && this.props.settings["scalars.reference"]){
+            this.props.getScalar(this.props.settings["scalars.reference"].id);
+            this.props.getKeyScalar(this.props.settings["scalars.reference"].name);
+        }
         m.isOpen = !m.isOpen;
         this.setState({
             modalState: m
@@ -344,6 +353,55 @@ export class Scalars extends Component {
             :
             null;
 
+        const scalarMain = (
+            <Ellipsified
+                className={cx(styles.Value, 'ScalarValue text-dark fullscreen-normal-text fullscreen-night-text', {
+                    "text-brand-hover cursor-pointer": true
+                })}
+                tooltip={description ? description : "Select the `+` on the left hand side of the card!"}
+                alwaysShowTooltip={name ? name !== description : true}
+                style={{maxWidth: '100%'}}
+            >
+                          <span
+                              onClick={() => {}
+                                  //TODO: funkeyfreak - handle the opening of a modal on the click of the scalar object
+                                  //this._scalars ? this.onModalOpenClick(scalar): (() => {/*do nothing*/})
+                              }
+
+
+                              //ref={scalars => this._scalars = scalars}
+                          >
+                             {value ? value : "0"}
+                          </span>
+            </Ellipsified>
+        );
+
+        const scalarDescription = (
+            <div className={styles.Title + " flex align-center relative"}>
+                <Ellipsified
+                    tooltip={name ? name : ""}>
+                      <span
+                          className={"fullscreen-normal-text fullscreen-night-text"}
+                      >
+                          <span className="Scalar-title">
+                              {name ? name : ""}
+                          </span>
+                      </span>
+
+                </Ellipsified>
+                { description &&
+                <div
+                    className="absolute top bottom hover-child flex align-center justify-center"
+                    style={{ right: -20, top: 2 }}
+                >
+                    <Tooltip tooltip={description} maxWidth={'22em'}>
+                        <Icon name='infooutlined' />
+                    </Tooltip>
+                </div>
+                }
+            </div>
+        );
+
 
         return (
             <div className={cx(className, styles.Scalar, styles[isSmall ? "small" : "large"])}>
@@ -360,50 +418,9 @@ export class Scalars extends Component {
                     </div>
                 }
 
-                <Ellipsified
-                    className={cx(styles.Value, 'ScalarValue text-dark fullscreen-normal-text fullscreen-night-text', {
-                        "text-brand-hover cursor-pointer": true
-                    })}
-                    tooltip={description ? description : "Select the `+` on the left hand side of the card!"}
-                    alwaysShowTooltip={name ? name !== description : true}
-                    style={{maxWidth: '100%'}}
-                >
-                      <span
-                          onClick={() => {}
-                              //TODO: funkeyfreak - handle the opening of a modal on the click of the scalar object
-                              //this._scalars ? this.onModalOpenClick(scalar): (() => {/*do nothing*/})
-                          }
+                { scalarMain }
 
-
-                          //ref={scalars => this._scalars = scalars}
-                      >
-                         {value ? value : "0"}
-                      </span>
-                </Ellipsified>
-
-                <div className={styles.Title + " flex align-center relative"}>
-                    <Ellipsified
-                        tooltip={name ? name : ""}>
-                      <span
-                          className={"fullscreen-normal-text fullscreen-night-text"}
-                      >
-                          <span className="Scalar-title">
-                              {name ? name : ""}
-                          </span>
-                      </span>
-
-                    </Ellipsified>
-                    { description &&
-                    <div
-                        className="absolute top bottom hover-child flex align-center justify-center"
-                        style={{ right: -20, top: 2 }}
-                    >
-                        <Tooltip tooltip={description} maxWidth={'22em'}>
-                            <Icon name='infooutlined' />
-                        </Tooltip>
-                    </div>
-                    }
-                </div>
+                { scalarDescription }
             </div>
 
         );

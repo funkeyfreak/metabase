@@ -93,7 +93,6 @@ export class ScalarForm extends Component {
     };
     constructor(props){
         super(props);
-        console.debug(props);
     }
 
     render() {
