@@ -278,8 +278,15 @@ export class Scalars extends Component {
             let scalar = newProps.scalar;
             let { id } = scalar;
             let scalars = newProps.scalarList;
+            let valueChange = 2;
             if( scalars != null && scalars.length > 1) {
                 //TODO: Add stats work here?
+                valueChange = 5;
+                console.log('scalars length was greater then 1');
+            }
+            else
+            {
+                console.log('scalars length was 1 or null');
             }
 
             //update the settings, if they are dirty AND we have a new scalar (since our new scalar is loaded async
@@ -292,6 +299,7 @@ export class Scalars extends Component {
                 reference: newProps.scalar,
                 scalarId: newProps.scalar.id,
                 scalarKey: newProps.scalar.name,
+                valueDifference: valueChange
             });
         }
     }
@@ -332,7 +340,7 @@ export class Scalars extends Component {
         if (!s) {
             s = {
                 "id": null,
-                "name": "new_scalar",
+                "name": "new value",
                 "description": null,
                 "value": null,
                 "date": null
@@ -341,6 +349,10 @@ export class Scalars extends Component {
         const scalar = s;
 
         const { id, name, value, description } = scalar;
+
+        const isPercentage = (value > 0 && value <1.001);
+
+        const difference = this.state.modalState.valueDifference ? this.state.modalState.valueDifference : 10 ;
 
         //force rendering of individual modals per scalar
         const scalarModal = this.state.modalState.isOpen ?
@@ -358,28 +370,31 @@ export class Scalars extends Component {
                 className={cx(styles.Value, 'ScalarValue text-dark fullscreen-normal-text fullscreen-night-text', {
                     "text-brand-hover cursor-pointer": true
                 })}
-                tooltip={description ? description : "Select the `+` on the left hand side of the card!"}
-                alwaysShowTooltip={name ? name !== description : true}
+                //tooltip={description ? description : "Select the `+` on the left hand side of the card!"}
+                //alwaysShowTooltip={name ? name !== description : true}
                 style={{maxWidth: '100%'}}
             >
                           <span
-                              onClick={() => {}
-                                  //TODO: funkeyfreak - handle the opening of a modal on the click of the scalar object
-                                  //this._scalars ? this.onModalOpenClick(scalar): (() => {/*do nothing*/})
-                              }
+                            //   onClick={() => {}
+                            //       //TODO: funkeyfreak - handle the opening of a modal on the click of the scalar object
+                            //       //this._scalars ? this.onModalOpenClick(scalar): (() => {/*do nothing*/})
+                            //   }
 
 
                               //ref={scalars => this._scalars = scalars}
                           >
-                             {value ? value : "0"}
+                             {value ? (isPercentage ? value * 100 : value) : "0"}
+                             {isPercentage ? "%" : ""}
+                             {/* {difference != 0 ? difference + (difference > 0 ? "Up Arrow" : "dw Arrow") : ""} */}
+                             {difference}
                           </span>
             </Ellipsified>
         );
 
-        const scalarDescription = (
+        const scalarName = (
             <div className={styles.Title + " flex align-center relative"}>
-                <Ellipsified
-                    tooltip={name ? name : ""}>
+                <Ellipsified>
+                     
                       <span
                           className={"fullscreen-normal-text fullscreen-night-text"}
                       >
@@ -389,16 +404,23 @@ export class Scalars extends Component {
                       </span>
 
                 </Ellipsified>
-                { description &&
-                <div
-                    className="absolute top bottom hover-child flex align-center justify-center"
-                    style={{ right: -20, top: 2 }}
-                >
-                    <Tooltip tooltip={description} maxWidth={'22em'}>
-                        <Icon name='infooutlined' />
-                    </Tooltip>
-                </div>
-                }
+               
+            </div>
+        );
+
+        const scalarDescription = (
+            <div className={styles.Title + " flex align-center relative"}>
+                <Ellipsified>
+                      <span
+                          className={"fullscreen-normal-text fullscreen-night-text"}
+                      >
+                          <span className="Scalar-Description">
+                              {description ? description : ""}
+                          </span>
+                      </span>
+
+                </Ellipsified>
+                
             </div>
         );
 
@@ -417,6 +439,7 @@ export class Scalars extends Component {
                         />
                     </div>
                 }
+                { scalarName }
 
                 { scalarMain }
 
@@ -441,12 +464,13 @@ const ScalarActionButtons = ({ actionButtons, onModalOpenClick, saveupdatescalar
                 >
                     <span className="flex align-center">
                         <span className="flex">
-                            {(scalar && scalar.id)
+                        <Icon name="add" style={{ top: 0, left: 0 }} size={HEADER_ICON_SIZE} />
+                            {/* {(scalar && scalar.id)
                                 ?
                                 <Icon name="editdocument" style={{ top: 0, left: 0 }} size={HEADER_ICON_SIZE} />
                                 :
                                 <Icon name="add" style={{ top: 0, left: 0 }} size={HEADER_ICON_SIZE} />
-                            }
+                            } */}
                         </span>
                     </span>
                 </a>

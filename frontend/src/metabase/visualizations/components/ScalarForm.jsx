@@ -54,9 +54,6 @@ const formConfig = {
 export const getFormTitle = ({ id, name }) =>
     id.value ? name.value : t`New Scalar`
 
-export const getActionText = ({ id }) =>
-    id.value ? t`Update` : t`Create`
-
 
 export const ScalarEditorFormActions = ({ handleSubmit, invalid, onClose, fields}) =>
     <div>
@@ -64,7 +61,7 @@ export const ScalarEditorFormActions = ({ handleSubmit, invalid, onClose, fields
             Cancel
         </Button>
         <Button primary disabled={invalid} onClick={handleSubmit}>
-            { getActionText(fields) }
+           Add Value
         </Button>
     </div>
 
@@ -112,12 +109,27 @@ export class ScalarForm extends Component {
                         displayName={t`Name`}
                         {...fields.name}
                     >
+                   
                         <Input
                             readOnly={!!fields.name.initialValue}
+                            disabled={!!fields.name.initialValue}
                             className="Form-input full"
-                            placeholder={t`My new fantastic number`}
+                            placeholder={t`Title`}
                             autoFocus
                             {...fields.name}
+                        />
+                        
+                    </FormField>                    
+                    <FormField
+                        displayName={t`Description`}
+                        {...fields.description}
+                    >
+                        <textarea
+                            disabled={!!fields.description.initialValue}
+                            className="Form-input full"
+                            placeholder={t`Value Description`}
+
+                            {...fields.description}
                         />
                     </FormField>
                     <FormField
@@ -126,20 +138,8 @@ export class ScalarForm extends Component {
                     >
                         <textarea
                             className="Form-input full"
-                            placeholder={t`Your integer value!`}
+                            placeholder={t`Numeric value`}
                             {...fields.value}
-                        />
-                    </FormField>
-                    <FormField
-                        displayName={t`Description`}
-                        {...fields.description}
-                    >
-                        <textarea
-                            readOnly={!!fields.description.initialValue}
-                            className="Form-input full"
-                            placeholder={t`It's optional but oh, so helpful`}
-
-                            {...fields.description}
                         />
                     </FormField>
                     <FormField
