@@ -42,6 +42,8 @@ export const getSlowCards         = state => state.dashboard.slowCards;
 export const getCardIdList        = state => state.dashboard.cardList;
 export const getRevisions         = state => state.dashboard.revisions;
 export const getParameterValues   = state => state.dashboard.parameterValues;
+export const getCurrentScalar     = state => state.dashboard.scalar;
+export const getScalarNames       = state => state.dashboard.scalarName;
 export const getAllScalars        = state => state.dashboard.scalars;
 
 export const getDashboard = createSelector(
@@ -68,6 +70,18 @@ export const getIsDirty = createSelector(
             ))
         )
     )
+);
+
+//export const getMyScalar = (state, props) => state.dashboard.scalars.filter(s => s.id = props.id);
+
+export const isNewScalarReady = createSelector(
+    [getAllScalars, getCurrentScalar],
+    (scalars, scalar) => (scalars && scalar && !scalars.includes(scalar))
+);
+
+export const getScalarList = createSelector(
+    [getAllScalars, getCurrentScalar],
+    (scalars, scalar) => (scalars && scalar) ? scalars.filter(s => s.name = scalar.name) : null
 );
 
 export const getCardList = createSelector(

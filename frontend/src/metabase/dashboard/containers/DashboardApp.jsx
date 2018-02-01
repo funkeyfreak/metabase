@@ -35,7 +35,7 @@ const mapStateToProps = (state, props) => {
       editingParameter:     getEditingParameter(state, props),
       parameters:           getParameters(state, props),
       parameterValues:      getParameterValues(state, props),
-      metadata:             getMetadata(state)
+      metadata:             getMetadata(state),
   }
 }
 
